@@ -40,14 +40,12 @@
     })();
   </script>
 
-  {{-- ===== Sneat CSS ===== --}}
-  @vite([
-    'resources/assets/vendor/scss/core.scss',
-    'resources/assets/vendor/scss/theme-default.scss',
-    'resources/assets/vendor/scss/_theme/_theme.scss',
-    'resources/assets/vendor/scss/custom-override.scss',
-    'resources/assets/css/demo.css',
-  ])
+  {{-- ===== Production CSS ===== --}}
+  <link rel="stylesheet" href="{{ asset('build/assets/core-BnqA3ef1.css') }}">
+  <link rel="stylesheet" href="{{ asset('build/assets/theme-default-D5KFm6jZ.css') }}">
+  <link rel="stylesheet" href="{{ asset('build/assets/_theme-Ruhj2bpQ.css') }}">
+  <link rel="stylesheet" href="{{ asset('build/assets/custom-override-B_FnKQlU.css') }}">
+  <link rel="stylesheet" href="{{ asset('build/assets/demo-ISkCbL8g.css') }}">
 
   @stack('styles')
 </head>
@@ -63,6 +61,14 @@
       @yield('layoutContent')
     </main>
   </div>
+
+  {{-- ===== Production JS ===== --}}
+  <script src="{{ asset('build/assets/_commonjsHelpers-Cpj98o6Y.js') }}"></script>
+  <script src="{{ asset('build/assets/popper-CgINJS0r.js') }}"></script>
+  <script src="{{ asset('build/assets/bootstrap-BqFZZLXP.js') }}"></script>
+  <script src="{{ asset('build/assets/perfect-scrollbar-DPYX2UL_.js') }}"></script>
+  <script src="{{ asset('build/assets/menu-Bldkajpn.js') }}"></script>
+  <script src="{{ asset('build/assets/main-CWila6Zz.js') }}"></script>
 
   {{-- Default scripts --}}
   @include('layouts/sections/scripts')
