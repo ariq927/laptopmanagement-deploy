@@ -5,7 +5,7 @@
   },
   "node_modules/boxicons/fonts/boxicons.eot": {
     "file": "assets/boxicons-CSrLvhY_.eot",
-    "src": "resources/assets/vendor/fonts/boxicons/boxicons.eot"
+    "src": "node_modules/boxicons/fonts/boxicons.eot"
   },
   "node_modules/boxicons/fonts/boxicons.svg": {
     "file": "assets/boxicons-Dp7W9qN3.svg",
@@ -21,7 +21,7 @@
   },
   "node_modules/boxicons/fonts/boxicons.woff2": {
     "file": "assets/boxicons-CeGEncwm.woff2",
-    "src": "resources/assets/vendor/fonts/boxicons/boxicons.woff2"
+    "src": "node_modules/boxicons/fonts/boxicons.woff2"
   },
   "resources/assets/css/demo.css": {
     "file": "assets/demo-ISkCbL8g.css",
@@ -41,13 +41,13 @@
     "isEntry": true
   },
   "resources/assets/vendor/fonts/boxicons.scss": {
-    "file": "assets/boxicons-O8dot9wJ.css",
+    "file": "assets/boxicons-BXK9XXfn.css",
     "src": "resources/assets/vendor/fonts/boxicons.scss",
     "isEntry": true
   },
   "resources/assets/vendor/fonts/boxicons/boxicons.eot": {
     "file": "assets/boxicons-CSrLvhY_.eot",
-    "src": "resources/assets/vendor/fonts/boxicons/boxicons.eot"
+    "src": "node_modules/boxicons/fonts/boxicons.eot"
   },
   "resources/assets/vendor/fonts/boxicons/boxicons.svg": {
     "file": "assets/boxicons-Dp7W9qN3.svg",
@@ -63,7 +63,7 @@
   },
   "resources/assets/vendor/fonts/boxicons/boxicons.woff2": {
     "file": "assets/boxicons-CeGEncwm.woff2",
-    "src": "resources/assets/vendor/fonts/boxicons/boxicons.woff2"
+    "src": "node_modules/boxicons/fonts/boxicons.woff2"
   },
   "resources/assets/vendor/js/bootstrap.js": {
     "file": "assets/bootstrap-BqFZZLXP.js",
@@ -122,7 +122,7 @@
     "isEntry": true
   },
   "resources/assets/vendor/scss/main.scss": {
-    "file": "assets/main-OMey_P-k.css",
+    "file": "assets/main-CvUEEkOi.css",
     "src": "resources/assets/vendor/scss/main.scss",
     "isEntry": true
   },
