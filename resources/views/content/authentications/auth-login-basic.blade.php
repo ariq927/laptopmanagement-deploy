@@ -1,4 +1,4 @@
-@extends('layouts/blankLayout')
+@extends('layouts.blankLayout')
 
 @section('title', 'Login - Laptop Management PLN IPS')
 
