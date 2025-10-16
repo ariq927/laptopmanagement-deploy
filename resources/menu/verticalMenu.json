@@ -1,0 +1,51 @@
+{
+  "menu": [
+    {
+      "url": "/",
+      "name": "Dashboard",
+      "icon": "menu-icon tf-icons bx bx-home-smile",
+      "slug": "dashboard",
+      "badge": [
+        "danger",
+        ""
+      ]
+    },
+   
+   
+    {
+      "menuHeader": "Daftar Lapop & Peminjam"
+    },
+
+    {
+      "url": "tables/laptop",
+      "icon": "menu-icon tf-icons bx bx-table",
+      "name": "Daftar Laptop",
+      "slug": "tables-basic"
+    },
+
+        
+    {
+      "url": "tables/basic",
+      "icon": "menu-icon tf-icons bx bx-table",
+      "name": "Daftar Peminjam",
+      "slug": "tables-basic"
+    },
+    
+    {
+      "url": "arsip/laptop",
+      "icon": "menu-icon tf-icons bx bx-table",
+      "name": "Laptop Diarsip",
+      "slug": "arsip-laptop"
+    },
+    
+    {
+      "menuHeader": "Laporan"
+    },
+    {
+      "url": "/laporan",
+      "icon": "menu-icon tf-icons bx bx-file",
+      "name": "Laporan",
+      "slug": "support"
+    }
+  ]
+} 
