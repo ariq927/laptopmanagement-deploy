@@ -1,0 +1,20 @@
+.hover-anim {
+  transition: transform 0.3s ease, filter 0.3s ease;
+  display: inline-block;
+}
+.hover-anim:hover {
+  transform: scale(1.2);
+  filter: brightness(1.2);
+}
+
+body {
+  background: url('/assets/img/backgrounds/90685.jpg') no-repeat center center fixed;
+  background-size: cover;
+}
+
+.content-wrapper {
+  background-color: rgba(255, 255, 255, 0.9); /* putih agak transparan */
+  border-radius: 12px;
+  padding: 20px;
+}
+
