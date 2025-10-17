@@ -4,7 +4,7 @@
 
 @section('content')
 <div class="card" id="peminjamCard" 
-  style="background-color: rgba(20, 162, 186, 0,5); backdrop-filter: blur(10px); border: 1px solid rgba(20, 162, 186, 0.3);">
+  style="background-color: rgba(20, 162, 186, 0.5); backdrop-filter: blur(10px); border: 1px solid rgba(20, 162, 186, 0.3);">
   <div class="card-header d-flex justify-content-between align-items-center"
     style="background-color: #14a2ba; border-bottom: 1px solid rgba(20, 162, 186, 0.3);">
     <h5 style="color: #fff; font-weight: bold; text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);">
@@ -105,7 +105,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     tableBody.innerHTML = items.map((p, i) => `
-      <tr style="background-color: rgba(20,162,186,1)">
+      <tr style="background-color: rgba(20,162,186,0.1)">
         <td class="text-white fw-bold">${(pagination.from || 0) + i}</td>
         <td class="text-white fw-bold">${p.nama}</td>
         <td class="text-white fw-bold">${p.department ?? '-'}</td>
