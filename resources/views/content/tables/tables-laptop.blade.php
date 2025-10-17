@@ -21,10 +21,8 @@
       <input type="text" id="searchInput" class="form-control"
              placeholder="Cari Laptop..."
              style="background-color:rgba(255,255,255,0.9); border:1px solid #14a2ba; color:#000;">
-      <a href="/laptop/create" class="btn btn-primary" style="font-weight:bold; background-color:#14a2ba; border-color:#14a2ba;">
-        + Tambah Laptop
-      </a>
-    </div>
+      <a href="/laptop/create" class="btn btn-success fw-bold" style="border-radius:0; font-size:14px; height:36px; line-height:36px; padding:0 12px; white-space: nowrap;">+ TAMBAH LAPTOP</a>
+      </div>
   </div>
 
   <div class="table-responsive">
