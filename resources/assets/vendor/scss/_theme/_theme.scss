@@ -144,17 +144,17 @@
   flex-direction: column; 
   align-items: center;    
   justify-content: center;
-  padding: 0.5rem 0;   // lebih rapat dari 1rem
+  padding: 0.5rem 0;   
   overflow: visible;
 }
 
 // Logo PLN
 .app-brand-logo {
-  width: 160px;       // bisa disesuaikan
+  width: 160px;       
   max-width: 100%; 
   height: auto;
   display: block;
-  margin: 0;          // tanpa margin atas bawah
+  margin: 0;          
 }
 
 // Teks di bawah logo
@@ -163,13 +163,13 @@
   font-weight: bold;
   color: #ffffff !important;
   text-align: center;
-  margin-top: 0.25rem; // sedikit jarak biar tidak nempel
+  margin-top: 0.25rem; 
 }
 
 // Vertical menu container
 .menu-vertical {
   .app-brand {
-    min-height: 100px; // dari 180px jadi lebih pendek
+    min-height: 100px; 
     margin-top: 0.5rem;
   }
 }
@@ -188,18 +188,18 @@
 
 .table-dark th {
   background-color:#125d72 !important;
-  color: #fafafa !important; // biar teks tetap kebaca jelas
+  color: #fafafa !important; 
 }
 
 .btn-edit:hover {
-    background-color: #d6cf25; /* versi sedikit lebih gelap saat hover */
+    background-color: #d6cf25; 
     border-color: #d6cf25;
     color: #000;
 }
 
 .table-wrap td {
-  white-space: normal !important; /* Supaya bisa multi-line */
-  word-wrap: break-word; /* Pecah kata kalau kepanjangan */
+  white-space: normal !important; 
+  word-wrap: break-word; 
 }
 
 .btn-action {
