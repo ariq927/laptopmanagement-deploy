@@ -4,7 +4,7 @@
 
 @section('content')
 <style>
-  /* Animasi hover untuk semua card */
+  /* hover */
   .card {
     background-color: rgba(20,162,186,0.5);
     backdrop-filter: blur(10px);
