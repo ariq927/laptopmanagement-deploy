@@ -2,14 +2,10 @@
 
 @section('title', 'Login - Laptop Management PLN IPS')
 
-@section('page-style')
-@vite(['resources/assets/vendor/scss/pages/page-auth.scss'])
-@endsection
-
 @section('content')
-<div class="container-xxl">
-  <div class="authentication-wrapper authentication-basic container-p-y">
-    <div class="authentication-inner">
+<div class="container">
+  <div class="authentication-wrapper authentication-basic d-flex justify-content-center align-items-center" style="min-height:100vh;">
+    <div class="authentication-inner" style="max-width:420px; width:100%; margin:auto;">
       <div class="card px-sm-6 px-0">
         <div class="card-body">
           <h4 class="mb-1">Selamat Datang 👋</h4>
@@ -43,4 +39,26 @@
     </div>
   </div>
 </div>
+
+<!-- Toggle Password Script -->
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  const togglePassword = document.querySelector('.form-password-toggle .input-group-text');
+  const passwordInput = document.querySelector('#password');
+  const icon = togglePassword.querySelector('i');
+
+  togglePassword.addEventListener('click', function () {
+    const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+    passwordInput.setAttribute('type', type);
+    
+    if(type === 'password'){
+      icon.classList.remove('bx-show');
+      icon.classList.add('bx-hide');
+    } else {
+      icon.classList.remove('bx-hide');
+      icon.classList.add('bx-show');
+    }
+  });
+});
+</script>
 @endsection

@@ -27,7 +27,6 @@
   <div class="layout-wrapper layout-content-navbar {{ $isMenu ? '' : 'layout-without-menu' }}">
     <div class="layout-container">
 
-      {{-- Sidebar sudah dipanggil di commonMaster, bisa dihilangkan di sini jika ingin --}}
       {{-- @if ($isMenu)
         @include('layouts/sections/menu/verticalMenu')
       @endif --}}
