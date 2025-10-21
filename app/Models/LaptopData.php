@@ -15,7 +15,7 @@ class LaptopData extends Model
         'merek',
         'tipe',
         'spesifikasi',
-        'serial_number',
+        'kode',
         'stok',
         'status', 
         'foto',

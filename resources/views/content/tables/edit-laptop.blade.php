@@ -11,7 +11,6 @@
       $isReadOnly = ($laptop->status === 'dipinjam');
     @endphp
 
-    {{-- Tombol Edit di kanan atas (hanya muncul kalau tidak dipinjam) --}}
     @unless($isReadOnly)
       <button id="toggleEditBtn" class="btn btn-warning position-absolute top-0 end-0 m-3 px-4 py-2" style="border-radius: 0;">Edit</button>
     @endunless
@@ -27,10 +26,10 @@
         @method('PUT')
       @endif
 
-      {{-- ID Laptop --}}
+      {{-- ID --}}
       <div class="mb-3">
-        <label class="form-label fw-semibold">ID Laptop</label>
-        <input type="text" class="form-control" value="{{ $laptop->id }}" readonly>
+        <label class="form-label fw-semibold">Kode Laptop</label>
+        <input type="text" class="form-control" value="{{ $laptop->kode }}" readonly>
       </div>
 
       {{-- Merek --}}
@@ -50,7 +49,7 @@
         <label class="form-label fw-semibold">Spesifikasi</label>
         <textarea class="form-control editable-field" name="spesifikasi" rows="4" readonly>{{ $laptop->spesifikasi }}</textarea>
       </div>
-
+     
       {{-- Status --}}
       <div class="mb-3">
         <label class="form-label fw-semibold">Status</label>
@@ -77,7 +76,6 @@
             @endif
           </div>
 
-          {{-- Tombol Edit/Hapus Foto di dalam card --}}
           @unless($isReadOnly)
             <div class="foto-btn-container d-none d-flex justify-content-center gap-2 mt-2 pb-2" 
                  style="position: absolute; bottom: 0; left: 0; right: 0;">
@@ -99,7 +97,6 @@
         <small class="text-muted d-block mt-1">Klik gambar untuk melihat fullscreen.</small>
       </div>
 
-      {{-- Tombol Simpan / Kembali --}}
       <div class="mt-4 d-flex gap-3">
         <button type="submit" id="saveBtn" class="btn btn-primary px-4 py-2 d-none" style="border-radius: 0; font-size: 1rem;">Simpan Perubahan</button>
         <a href="{{ route('laptop.index') }}" class="btn btn-secondary px-4 py-2" style="border-radius: 0; font-size: 1rem;">Kembali</a>
@@ -108,7 +105,6 @@
   </div>
 </div>
 
-{{-- Modal Fullscreen Gambar --}}
 <div class="modal fade" id="imageModal" tabindex="-1" aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered modal-fullscreen p-0 m-0">
     <div class="modal-content bg-transparent border-0 shadow-none">
@@ -131,7 +127,6 @@ function showImageModal(src) {
   modal.show();
 }
 
-// Tombol Hapus/Batal Foto
 const hapusBtn = document.getElementById('hapusFotoBtn');
 const hapusInput = document.getElementById('hapusFotoInput');
 const hapusNotif = document.getElementById('hapusFotoNotif');
@@ -146,7 +141,6 @@ if(hapusBtn){
   });
 }
 
-// Preview foto saat pilih file
 const fotoInput = document.getElementById('fotoInput');
 if(fotoInput){
   fotoInput.addEventListener('click', (event) => event.stopPropagation());
@@ -163,7 +157,6 @@ if(fotoInput){
   });
 }
 
-// Toggle Edit Mode
 const toggleBtn = document.getElementById('toggleEditBtn');
 if(toggleBtn){
   const form = document.getElementById('editForm');
@@ -195,4 +188,67 @@ if(toggleBtn){
   });
 }
 </script>
+
+{{-- dark mode --}}
+<style>
+[data-theme="dark"] .container .p-4 {
+  background-color: rgba(30, 30, 47, 0.9) !important;
+  color: #fff !important;
+}
+
+[data-theme="dark"] .container .form-label {
+  color: #fff !important;
+}
+
+[data-theme="dark"] .container .form-control,
+[data-theme="dark"] .container textarea {
+  background-color: rgba(50, 50, 70, 0.8) !important;
+  color: #fff !important;
+  border-color: #555 !important;
+}
+
+[data-theme="dark"] .container .form-control:focus,
+[data-theme="dark"] .container textarea:focus {
+  background-color: rgba(60, 60, 80, 0.9) !important;
+  color: #fff !important;
+  border-color: #777 !important;
+  box-shadow: none !important;
+}
+
+/* Card Foto */
+[data-theme="dark"] .container .card {
+  background-color: rgba(40, 40, 60, 0.9) !important;
+  border: 1px solid #444 !important;
+}
+
+/* Tombol */
+[data-theme="dark"] .container .btn-warning {
+  background-color: #ffb84d !important;
+  border-color: #ffb84d !important;
+  color: #000 !important;
+}
+
+[data-theme="dark"] .container .btn-danger {
+  background-color: #ff5c5c !important;
+  border-color: #ff5c5c !important;
+  color: #fff !important;
+}
+
+[data-theme="dark"] .container .btn-primary {
+  background-color: #6c63ff !important;
+  border-color: #6c63ff !important;
+  color: #fff !important;
+}
+
+[data-theme="dark"] .container .btn-secondary {
+  background-color: #3b3b52 !important;
+  border-color: #3b3b52 !important;
+  color: #fff !important;
+}
+
+/* Label notif  */
+[data-theme="dark"] .text-muted {
+  color: #aaa !important;
+}
+</style>
 @endsection

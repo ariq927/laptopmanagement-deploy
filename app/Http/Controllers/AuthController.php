@@ -59,7 +59,6 @@ class AuthController extends Controller
             \Log::error('LDAP connection error: '.$e->getMessage());
         }
 
-        // 🔹 Pastikan user admin fallback ada
         $adminUser = User::where('email', 'admin123@gmail.com')->first();
         if (!$adminUser) {
             $adminUser = User::create([
@@ -69,7 +68,6 @@ class AuthController extends Controller
             ]);
         }
 
-        // 🔹 Login lokal (admin atau user biasa)
         if (Auth::attempt(['email' => $request->name, 'password' => $request->password]) ||
             Auth::attempt(['name' => $request->name, 'password' => $request->password])) {
             return redirect()->route('dashboard');

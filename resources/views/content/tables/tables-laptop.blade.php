@@ -6,7 +6,7 @@
 <div class="card" id="laptopTableContainer"
      style="background-color: rgba(20,162,186,0.5); backdrop-filter: blur(10px); border: 1px solid rgba(20,162,186,0.3);">
   <div class="card-header d-flex justify-content-between align-items-center"
-       style="background-color: #14a2ba; border-bottom: 1px solid rgba(20,162,186,0.3);">
+       style="background-color: rgba(20,162,186,0.5);; border-bottom: 1px solid rgba(20,162,186,0.3);">
     <h5 style="color: #fff; font-weight: bold; text-shadow: 2px 2px 4px rgba(0,0,0,0.8);">
       Daftar Laptop
     </h5>
@@ -27,10 +27,10 @@
 
   <div class="table-responsive">
     <table class="table table-bordered" id="laptopTable" style="background-color:transparent;">
-      <thead style="background-color:#14a2ba;">
+      <thead style="background-color: rgba(20,162,186,0.5);">
         <tr>
           <th style="color:#fff; font-weight:bold;">No</th>
-          <th style="color:#fff; font-weight:bold;">ID Laptop</th>
+          <th style="color:#fff; font-weight:bold;">Kode Laptop</th>
           <th style="color:#fff; font-weight:bold;">Merek</th>
           <th style="color:#fff; font-weight:bold;">Tipe</th>
           <th style="color:#fff; font-weight:bold;">Spesifikasi</th>
@@ -38,7 +38,7 @@
         </tr>
       </thead>
       <tbody id="laptopTableBody">
-        <tr><td colspan="6" class="text-center">Memuat data...</td></tr>
+        <tr style="background-color: rgba(20,162,186,0.1)"><td colspan="6" class="text-center">Memuat data...</td></tr>
       </tbody>
     </table>
   </div>
@@ -65,7 +65,7 @@
 
     const fetchData = (page = 1) => {
       currentPage = page;
-      fetch(`/api/laptop?search=${search}&page=${page}&per_page=${perPage}`)
+      fetch(`/laptop/data?search=${search}&page=${page}&per_page=${perPage}`)
         .then(res => res.json())
         .then(json => {
           renderTable(json.data, json.from, json);
@@ -91,7 +91,7 @@
             onmouseout="this.style.backgroundColor='rgba(20,162,186,0.1)'; this.style.transform='scale(1)'"
             onclick="window.location.href='/laptop/${laptop.id}/edit'">
           <td style="color:#fff;font-weight:bold;">${(pagination.from || 0) + index}</td>
-          <td style="color:#fff;font-weight:bold;">${laptop.id}</td>
+          <td style="color:#fff;font-weight:bold;">${laptop.kode}</td>
           <td style="color:#fff;font-weight:bold;">${laptop.merek}</td>
           <td style="color:#fff;font-weight:bold;">${laptop.tipe}</td>
           <td style="color:#fff;font-weight:bold;">${laptop.spesifikasi}</td>

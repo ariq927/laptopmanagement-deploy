@@ -13,7 +13,6 @@ class PeminjamanNewController extends Controller
 {
     public function __construct()
     {
-        // Pastikan semua fungsi cuma bisa diakses user login
         $this->middleware('auth');
     }
 
@@ -46,9 +45,9 @@ class PeminjamanNewController extends Controller
         $laptop = LaptopData::findOrFail($validated['laptop_id']);
 
         DataPeminjam::create([
-            'user_id' => $user->id, // tetap user login untuk tracking
+            'user_id' => $user->id, 
             'laptop_id' => $laptop->id,
-            'nama' => $validated['nama'], // dari input form
+            'nama' => $validated['nama'], 
             'department' => $validated['department'],
             'tanggal_mulai' => $validated['tanggal_mulai'],
             'tanggal_selesai' => $validated['tanggal_selesai'],
@@ -58,7 +57,7 @@ class PeminjamanNewController extends Controller
         HistoriPeminjaman::create([
             'user_id' => $user->id,
             'laptop_id' => $laptop->id,
-            'nama' => $validated['nama'], // dari input form
+            'nama' => $validated['nama'], 
             'department' => $validated['department'],
             'tanggal_mulai' => $validated['tanggal_mulai'],
             'tanggal_selesai' => $validated['tanggal_selesai'],

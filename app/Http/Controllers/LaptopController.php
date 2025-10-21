@@ -37,17 +37,33 @@ class LaptopController extends Controller
             'merek' => 'required|string|max:255',
             'tipe' => 'required|string|max:255',
             'spesifikasi' => 'required|string',
-            'serial_number' => 'required|string|unique:laptop_data,serial_number',
             'status' => 'required|in:tersedia,dipinjam,maintenance',
             'foto' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
         ]);
 
-        $data = $request->only(['merek', 'tipe', 'spesifikasi', 'serial_number', 'status']);
+        $tahun = date('y'); 
+        $prefix = 'LAP-' . $tahun . '-';
+
+        $lastLaptop = LaptopData::where('kode', 'like', $prefix . '%')
+            ->orderBy('kode', 'desc')
+            ->first();
+
+        if ($lastLaptop) {
+            $lastNumber = (int) substr($lastLaptop->kode, -3);
+            $newNumber = str_pad($lastNumber + 1, 3, '0', STR_PAD_LEFT);
+        } else {
+            $newNumber = '001';
+        }
+
+        $kodeBaru = $prefix . $newNumber;
+
+        $data = $request->only(['merek', 'tipe', 'spesifikasi', 'status']);
+        $data['kode'] = $kodeBaru;
         $data['stok'] = 1;
 
         if ($request->hasFile('foto')) {
             try {
-                $cloudinary = new Cloudinary([
+                $cloudinary = new \Cloudinary\Cloudinary([
                     'cloud' => [
                         'cloud_name' => config('cloudinary.cloud_name'),
                         'api_key'    => config('cloudinary.api_key'),
@@ -57,19 +73,13 @@ class LaptopController extends Controller
 
                 $uploadResult = $cloudinary->uploadApi()->upload(
                     $request->file('foto')->getRealPath(),
-                    [
-                        'folder' => 'laptops',
-                        'resource_type' => 'image'
-                    ]
+                    ['folder' => 'laptops', 'resource_type' => 'image']
                 );
-                
+
                 if (isset($uploadResult['secure_url'])) {
                     $data['foto'] = $uploadResult['secure_url'];
                     $data['public_id'] = $uploadResult['public_id'];
-                } else {
-                    throw new \Exception('Tidak ada secure_url di response');
                 }
-                
             } catch (\Exception $e) {
                 return redirect()->back()
                     ->withInput()
@@ -125,7 +135,7 @@ class LaptopController extends Controller
         $laptop->status = 'diarsip';
         $laptop->save();
 
-        return redirect()->route('laptop.index')->with('success', 'Laptop berhasil diarsipkan.');
+        return response()->json(['message' => 'Laptop berhasil diarsip']);
     }
 
     public function restore($id)
@@ -134,16 +144,29 @@ class LaptopController extends Controller
         $laptop->status = 'tersedia';
         $laptop->save();
 
-        return redirect()->route('laptop.index')->with('success', 'Laptop berhasil dikembalikan.');
+        return redirect()
+            ->route('laptop.arsip')
+            ->with('success', 'Laptop berhasil dikembalikan!');
     }
 
-    public function arsipLaptop(Request $request)
+
+   public function arsipLaptop(Request $request)
     {
+        $search = $request->input('search');
         $perPage = $request->input('per_page', 10);
 
-        $laptops = LaptopData::where('status', 'diarsip')
-                    ->paginate($perPage)
-                    ->withQueryString();
+        $query = LaptopData::where('status', 'diarsip'); 
+
+        if (!empty($search)) {
+            $query->where(function ($q) use ($search) {
+                $q->where('kode', 'like', "%{$search}%")
+                ->orWhere('merek', 'like', "%{$search}%")
+                ->orWhere('tipe', 'like', "%{$search}%")
+                ->orWhere('spesifikasi', 'like', "%{$search}%");
+            });
+        }
+
+        $laptops = $query->orderBy('id', 'desc')->paginate($perPage)->withQueryString();
 
         return view('content.tables.archive-laptop', compact('laptops'));
     }
@@ -188,4 +211,22 @@ class LaptopController extends Controller
 
         return response()->json(['message' => 'Laptop berhasil diarsipkan']);
     }
+
+    public function getData(Request $request)
+    {
+        $query = LaptopData::query();
+
+        if ($request->search) {
+            $query->where('merek', 'like', "%{$request->search}%")
+                ->orWhere('kode', 'like', "%{$request->search}%")
+                ->orWhere('status', 'like', "%{$request->search}%")
+                ->orWhere('tipe', 'like', "%{$request->search}%");
+        }
+
+        $perPage = $request->input('per_page', 10);
+        $laptops = $query->paginate($perPage);
+
+        return response()->json($laptops);
+    }
+
 }

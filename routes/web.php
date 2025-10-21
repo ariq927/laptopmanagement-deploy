@@ -202,9 +202,10 @@ Route::post('/laptop', [LaptopController::class, 'store'])->name('laptop.store')
 Route::get('/cari/peminjam', [PeminjamanNewController::class, 'cari'])->name('cari.nama');
 
 //Arsip Laptop
-Route::patch('/laptop/{id}/archive', [LaptopController::class, 'archive'])->name('laptop.archive');
+Route::get('/laptop/data', [LaptopController::class, 'getData']);
+Route::get('/laptop/arsip', [LaptopController::class, 'arsipLaptop'])->name('laptop.arsip');
+Route::patch('/laptop/{id}/arsip', [LaptopController::class, 'archive'])->name('laptop.archive');
 Route::patch('/laptop/{id}/restore', [LaptopController::class, 'restore'])->name('laptop.restore');
-Route::get('/arsip/laptop', [LaptopController::class, 'arsipLaptop'])->middleware('auth')->name('arsip.tabel');
 
 // buat laporan 
 Route::get('/laporan', function() {

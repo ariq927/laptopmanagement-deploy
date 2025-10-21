@@ -49,6 +49,5 @@ Route::get('/laptops/arsip', function() {
     return LaptopData::where('status', 'diarsip')->get();
 });
 
-//Peminjam
 Route::get('/peminjam', [PeminjamanNewController::class, 'apiIndex']);
 Route::delete('/peminjam/{id}/selesai', [PeminjamanNewController::class, 'apiSelesai']);

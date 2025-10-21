@@ -10,7 +10,6 @@
       @csrf
       <input type="hidden" name="laptop_id" value="{{ $laptop->id }}">
 
-      {{-- Nama pegawai --}}
       <div class="mb-3">
         <label class="form-label">Nama</label>
         <select id="nama" name="nama" class="form-select" required>
@@ -18,13 +17,11 @@
         </select>
       </div>
 
-      {{-- Departemen otomatis --}}
       <div class="mb-3">
         <label class="form-label">Departemen</label>
         <input type="text" id="department" name="department" class="form-control" readonly>
       </div>
 
-      {{-- Tanggal Mulai & Tanggal Selesai sejajar --}}
         <div class="row">
           <div class="col-md-6 mb-3">
             <label class="form-label">Tanggal Mulai</label>
@@ -37,19 +34,17 @@
         </div>
 
 
-      {{-- Nomor Telepon otomatis --}}
       <div class="mb-3">
         <label class="form-label">Nomor Telepon</label>
         <input type="text" id="nomor_telepon" name="nomor_telepon" class="form-control" readonly>
       </div>
 
-      {{-- Tombol Simpan & Batal --}}
       <div class="d-flex justify-content-between">
         <a href="{{ route('laptop.index') }}" class="btn btn-outline-secondary">
           <i class="bx bx-arrow-back"></i> Batal
         </a>
         <button type="submit" class="btn btn-primary">
-          <i class="bx bx-save"></i> Simpan
+          <i class="bx bx-save"></i> Pinjam
         </button>
       </div>
     </form>

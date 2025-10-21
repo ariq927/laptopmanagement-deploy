@@ -7,7 +7,7 @@
   style="background-color: rgba(20, 162, 186, 0.5); backdrop-filter: blur(10px); border: 1px solid rgba(20, 162, 186, 0.3);">
 
   <div class="card-header d-flex justify-content-between align-items-center"
-    style="background-color: #14a2ba; border-bottom: 1px solid rgba(20, 162, 186, 0.3);">
+    style="background-color: rgba(20,162,186,0.5); border-bottom: 1px solid rgba(20, 162, 186, 0.3);">
     <h5 style="color: #fff; font-weight: bold; text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);">
       Daftar Peminjam
     </h5>
@@ -26,7 +26,7 @@
 
   <div class="table-responsive">
     <table class="table table-bordered mb-0">
-      <thead style="background-color: #14a2ba;">
+      <thead style="background-color: rgba(20,162,186,0.5);">
         <tr>
           <th class="text-white fw-bold">No</th>
           <th class="text-white fw-bold">Nama</th>

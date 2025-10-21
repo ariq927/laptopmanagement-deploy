@@ -47,8 +47,8 @@
       </a>
     </li>
 
-    <li class="menu-item {{ request()->is('arsip/laptop') ? 'active' : '' }}">
-      <a href="{{ url('arsip/laptop') }}" class="menu-link">
+    <li class="menu-item {{ request()->is('laptop/arsip') ? 'active' : '' }}">
+      <a href="{{ url('laptop/arsip') }}" class="menu-link">
         <i class="bx bx-archive"></i>
         <div>Laptop Diarsip</div>
       </a>
@@ -68,7 +68,7 @@
   </ul>
 </aside>
 
-{{-- CSS Menu Aktif --}}
+{{-- CSS menu yg aktif --}}
 <style>
   #layout-menu .menu-item.active > .menu-link {
     background-color: #ffffff !important;
@@ -85,6 +85,7 @@
 
   #layout-menu .menu-item:not(.active) > .menu-link {
     color: #ffffff !important;
+    font-weight: 600 !important;
   }
 
   #layout-menu .menu-item:not(.active) > .menu-link i {

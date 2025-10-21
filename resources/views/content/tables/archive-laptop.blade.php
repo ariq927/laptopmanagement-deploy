@@ -1,4 +1,3 @@
-{{-- resources/views/content/tables/archive-laptop.blade.php --}}
 @extends('layouts/contentNavbarLayout')
 
 @section('title', 'Laptop Arsip')
@@ -13,7 +12,7 @@
 
 <div class="card mb-4" style="background-color: {{ $cardBgColor }}; backdrop-filter: blur(10px); border:1px solid {{ $borderColor }};">
     {{-- Header --}}
-    <div class="card-header d-flex justify-content-between align-items-center" style="background-color: {{ $headerBgColor }}; border-bottom:1px solid {{ $borderColor }};">
+    <div class="card-header d-flex justify-content-between align-items-center" style="background-color: rgba(20,162,186,0.5); border-bottom:1px solid {{ $borderColor }};">
         <h5 class="text-white fw-bold mb-0">Laptop Diarsip</h5>
         <form method="GET" class="d-flex gap-2">
             <select name="per_page" class="form-select" style="width:auto; background-color: rgba(255,255,255,0.9); border:1px solid {{ $headerBgColor }}; color:#000;">
@@ -29,11 +28,11 @@
     {{-- Table --}}
     <div class="table-responsive">
         <table class="table table-bordered mb-0" style="background-color: transparent;">
-            <thead style="background-color: {{ $headerBgColor }};">
+            <thead style="background-color: rgba(20,162,186,0.5);">
                 <tr>
                     <th class="text-white fw-bold">No</th>
+                    <th class="text-white fw-bold">Kode Laptop</th>
                     <th class="text-white fw-bold">Merek - Tipe</th>
-                    <th class="text-white fw-bold">Serial Number</th>
                     <th class="text-white fw-bold">Spesifikasi</th>
                     <th class="text-white fw-bold">Aksi</th>
                 </tr>
@@ -42,8 +41,8 @@
                 @forelse ($laptops as $index => $laptop)
                     <tr style="background-color: rgba(20,162,186,0.1); transition: all 0.3s ease;">
                         <td class="fw-bold text-white">{{ $laptops->firstItem() + $index }}</td>
+                        <td class="fw-bold text-white">{{ $laptop->kode }}</td>
                         <td class="fw-bold text-white">{{ $laptop->merek }} {{ $laptop->tipe }}</td>
-                        <td class="fw-bold text-white">{{ $laptop->serial_number }}</td>
                         <td class="fw-bold text-white">{{ $laptop->spesifikasi }}</td>
                         <td>
                             <form action="{{ route('laptop.restore', $laptop->id) }}" method="POST">
@@ -52,8 +51,7 @@
                                 <button type="submit" class="btn btn-success btn-sm"
                                     style="background-color: {{ $headerBgColor }}; border-color: {{ $headerBgColor }};"
                                     onmouseover="this.style.backgroundColor='{{ $isDarkMode ? '#0d4a5c' : '#0f8399' }}'; this.style.transform='scale(1.05)';"
-                                    onmouseout="this.style.backgroundColor='{{ $headerBgColor }}'; this.style.transform='scale(1)';"
-                                >
+                                    onmouseout="this.style.backgroundColor='{{ $headerBgColor }}'; this.style.transform='scale(1)';">
                                     Kembalikan
                                 </button>
                             </form>
@@ -80,4 +78,10 @@
     </div>
     @endif
 </div>
+
+@if (session('success'))
+    <script>
+        setTimeout(() => location.reload(), 1000);
+    </script>
+@endif
 @endsection
