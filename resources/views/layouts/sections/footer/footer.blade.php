@@ -16,6 +16,6 @@ $containerFooter = !empty($containerNav) ? $containerNav : 'container-fluid';
         <a href="{{ config('variables.support') ? config('variables.support') : '#' }}" target="_blank" class="footer-link d-none d-sm-inline-block">Support</a>
       </div>
     </div>
-  </div>
+  </div>  
 </footer> -->
 <!--/ Footer-->
