@@ -1,6 +1,7 @@
+# Gunakan base image PHP + Apache
 FROM php:8.2-apache
 
-# Install dependencies
+# Install dependensi sistem & ekstensi PHP
 RUN apt-get update && apt-get install -y \
     git \
     curl \
@@ -12,49 +13,45 @@ RUN apt-get update && apt-get install -y \
     libxml2-dev \
     && docker-php-ext-install pdo_mysql mbstring zip exif pcntl bcmath gd
 
-# Enable Apache mod_rewrite
+# Aktifkan mod_rewrite untuk Laravel
 RUN a2enmod rewrite
 
-# Install Node.js 20
+# Install Node.js 20 dan Composer
 RUN curl -fsSL https://deb.nodesource.com/setup_20.x | bash - \
     && apt-get install -y nodejs
-
-# Install Composer globally
 RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
 
+# Set working directory
 WORKDIR /var/www/html
 
-# Copy project files
+# Copy semua file aplikasi
 COPY . /var/www/html
 
-# Create necessary Laravel directories
+# Pastikan folder penting ada
 RUN mkdir -p storage/framework/views storage/framework/cache storage/app storage/logs bootstrap/cache
 
-# Install PHP dependencies
+# Install dependensi PHP
 RUN composer install --optimize-autoloader --no-dev
 
-# Build frontend assets
-RUN npm install && npm run build
+# Build frontend (kalau ada, misalnya dari Laravel Mix / Vite)
+RUN npm install && npm run build || echo "⚠️  Skip npm build (no frontend)"
 
-# Set permissions
-RUN chmod -R 775 storage bootstrap/cache public/build \
-    && chown -R www-data:www-data storage bootstrap/cache public/build
+# Permission untuk Laravel
+RUN chmod -R 775 storage bootstrap/cache public/build || true \
+    && chown -R www-data:www-data storage bootstrap/cache public/build || true
 
-# Set Apache document root
+# Set public folder jadi root Apache
 ENV APACHE_DOCUMENT_ROOT=/var/www/html/public
 
-# Update Apache configs to use the new doc root
 RUN sed -ri -e 's!/var/www/html!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/sites-available/*.conf && \
     sed -ri -e 's!/var/www/!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/apache2.conf /etc/apache2/conf-available/*.conf
 
-# Make Apache listen to the dynamic Railway port
-RUN echo "Listen ${PORT}" >> /etc/apache2/ports.conf
+# Port Railway (gunakan 8080)
+EXPOSE 8080
 
-# Expose port (default to 8080 if Railway doesn’t set $PORT)
-EXPOSE ${PORT:-8080}
-
-# Copy entrypoint
+# Copy entrypoint custom
 COPY docker-entrypoint.sh /usr/local/bin/
 RUN chmod +x /usr/local/bin/docker-entrypoint.sh
 
+# Jalankan entrypoint
 ENTRYPOINT ["docker-entrypoint.sh"]
