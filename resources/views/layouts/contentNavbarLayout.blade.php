@@ -24,12 +24,23 @@
     })();
   </script>
 
+  {{-- ✅ Load CSS manual dari public/assets --}}
+  <link rel="stylesheet" href="{{ asset('assets/vendor/css/core.css') }}">
+  <link rel="stylesheet" href="{{ asset('assets/vendor/css/theme-default.css') }}">
+  <link rel="stylesheet" href="{{ asset('assets/css/demo.css') }}">
+  <link rel="stylesheet" href="{{ asset('assets/vendor/libs/perfect-scrollbar/perfect-scrollbar.css') }}">
+  <link rel="stylesheet" href="{{ asset('assets/vendor/libs/apex-charts/apex-charts.css') }}">
+  <link rel="stylesheet" href="{{ asset('assets/vendor/libs/datatables-bs5/datatables.bootstrap5.css') }}">
+  <link rel="stylesheet" href="{{ asset('assets/vendor/libs/datatables-responsive-bs5/responsive.bootstrap5.css') }}">
+  <link rel="stylesheet" href="{{ asset('assets/vendor/libs/datatables-buttons-bs5/buttons.bootstrap5.css') }}">
+
   <div class="layout-wrapper layout-content-navbar {{ $isMenu ? '' : 'layout-without-menu' }}">
     <div class="layout-container">
 
-      {{-- @if ($isMenu)
+      {{-- Menu --}}
+      @if ($isMenu)
         @include('layouts/sections/menu/verticalMenu')
-      @endif --}}
+      @endif
 
       <div class="layout-page">
         @if ($isNavbar)
@@ -53,12 +64,19 @@
     @endif
     <div class="drag-target"></div>
   </div>
-@endsection
 
-@push('styles')
+  {{-- ✅ Load JS manual dari public/assets --}}
+  <script src="{{ asset('assets/vendor/libs/jquery/jquery.js') }}"></script>
+  <script src="{{ asset('assets/vendor/libs/popper/popper.js') }}"></script>
+  <script src="{{ asset('assets/vendor/js/bootstrap.js') }}"></script>
+  <script src="{{ asset('assets/vendor/libs/perfect-scrollbar/perfect-scrollbar.js') }}"></script>
+  <script src="{{ asset('assets/vendor/js/menu.js') }}"></script>
+  <script src="{{ asset('assets/js/main.js') }}"></script>
+
+  <script src="{{ asset('assets/vendor/libs/apex-charts/apexcharts.js') }}"></script>
+  <script src="{{ asset('assets/vendor/libs/datatables-bs5/datatables-bootstrap5.js') }}"></script>
+
+  {{-- CDN tambahan --}}
   <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
-@endpush
-
-@push('scripts')
   <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
-@endpush
+@endsection

@@ -40,12 +40,14 @@
     })();
   </script>
 
-  {{-- ===== Production CSS ===== --}}
+  {{-- ===== Production CSS (sesuai manifest terbaru) ===== --}}
   <link rel="stylesheet" href="{{ asset('build/assets/core-BnqA3ef1.css') }}">
-  <link rel="stylesheet" href="{{ asset('build/assets/theme-default-D5KFm6jZ.css') }}">
-  <link rel="stylesheet" href="{{ asset('build/assets/_theme-Ruhj2bpQ.css') }}">
+  <link rel="stylesheet" href="{{ asset('build/assets/theme-default-BHwaPkzT.css') }}">
+  <link rel="stylesheet" href="{{ asset('build/assets/_theme-DgAlyPUC.css') }}">
   <link rel="stylesheet" href="{{ asset('build/assets/custom-override-B_FnKQlU.css') }}">
   <link rel="stylesheet" href="{{ asset('build/assets/demo-ISkCbL8g.css') }}">
+  <link rel="stylesheet" href="{{ asset('build/assets/perfect-scrollbar-C2W1dvIo.css') }}">
+  <link rel="stylesheet" href="{{ asset('build/assets/boxicons-BXK9XXfn.css') }}">
 
   @stack('styles')
 </head>
@@ -62,13 +64,15 @@
     </main>
   </div>
 
-  {{-- ===== Production JS ===== --}}
+  {{-- ===== Production JS (sesuai manifest terbaru) ===== --}}
   <script src="{{ asset('build/assets/_commonjsHelpers-Cpj98o6Y.js') }}"></script>
   <script src="{{ asset('build/assets/popper-CgINJS0r.js') }}"></script>
   <script src="{{ asset('build/assets/bootstrap-BqFZZLXP.js') }}"></script>
   <script src="{{ asset('build/assets/perfect-scrollbar-DPYX2UL_.js') }}"></script>
   <script src="{{ asset('build/assets/menu-Bldkajpn.js') }}"></script>
   <script src="{{ asset('build/assets/main-CWila6Zz.js') }}"></script>
+  <script src="{{ asset('build/assets/config-DRrfh9f1.js') }}"></script>
+  <script src="{{ asset('build/assets/helpers-6QHUpx47.js') }}"></script>
 
   {{-- Default scripts --}}
   @include('layouts/sections/scripts')

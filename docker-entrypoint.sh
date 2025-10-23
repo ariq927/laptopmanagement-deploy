@@ -1,34 +1,25 @@
 #!/bin/bash
-set -e
+set -e  # Exit on error
 
-echo "🚀 Starting Laravel container..."
-
+# Generate .env kalau belum ada (dari .env.example), dan set APP_KEY
 if [ ! -f .env ]; then
-    echo "📄 .env not found, creating from example..."
     cp .env.example .env
 fi
 
-# Generate APP_KEY kalau belum ada atau kosong
-if ! grep -q "^APP_KEY=" .env || [ -z "$(grep '^APP_KEY=' .env | cut -d= -f2-)" ]; then
-    echo "🔑 Generating new APP_KEY..."
-    KEY=$(php -r "echo 'base64:'.base64_encode(random_bytes(32));")
-    sed -i "/^APP_KEY=/d" .env
-    echo "APP_KEY=${KEY}" >> .env
-    echo "✅ APP_KEY set to: ${KEY}"
+# Generate APP_KEY kalau kosong (Railway inject via ENV, tapi fallback)
+if ! grep -q "^APP_KEY=" .env || [ "$(grep '^APP_KEY=' .env | cut -d= -f2-)" = "base64:" ]; then
+    php artisan key:generate --no-interaction --force --show | sed 's/^APP_KEY=/APP_KEY=/' >> .env
 fi
 
-echo "🧱 Running migrations..."
-php artisan migrate --force || echo "⚠️ Migration failed or no new migrations."
+# Jalankan migrasi (force untuk production)
+echo "Running migrations..."
+php artisan migrate --force
 
-echo "⚙️  Caching Laravel configuration..."
+# Opsional: Cache config/routes untuk performance
 php artisan config:cache
 php artisan route:cache
 php artisan view:cache
 
-chmod -R 775 /var/www/html/storage /var/www/html/bootstrap/cache
-chown -R www-data:www-data /var/www/html
-
-echo "✅ Laravel ready! Serving on port ${PORT:-8080}..."
-sed -i "s/Listen 80/Listen ${PORT:-8080}/" /etc/apache2/ports.conf
-
+# Start Apache (bind otomatis ke port 80, Railway handle $PORT via proxy)
+echo "Starting Apache on port ${PORT:-8080}..."
 exec apache2-foreground
