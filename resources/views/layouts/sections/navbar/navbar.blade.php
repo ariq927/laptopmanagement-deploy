@@ -7,6 +7,8 @@ $userName = $ldapUser['displayName'] ?? Auth::user()->name ?? 'User';
 $userEmail = $ldapUser['mail'] ?? Auth::user()->email ?? '';
 @endphp
 
+<link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet">
+
 <!-- Navbar -->
 @if($navbarDetached == 'navbar-detached')
 <nav class="layout-navbar {{ $containerNav }} navbar navbar-expand-xl {{ $navbarDetached }} align-items-center bg-navbar-theme" id="layout-navbar">
@@ -36,19 +38,18 @@ $userEmail = $ldapUser['mail'] ?? Auth::user()->email ?? '';
     <ul class="navbar-nav flex-row align-items-center ms-auto">
       <!-- Theme Toggle -->
       <li class="nav-item me-3 d-flex align-items-center">
-        <span class="me-1">🌞</span>
-        <label class="switch mb-0">
-          <input type="checkbox" id="theme-toggle-checkbox">
-          <span class="slider round"></span>
-        </label>
-        <span class="ms-1">🌙</span>
+        <button id="theme-toggle" class="glass-toggle-btn">
+          <i id="theme-icon" class="bx bx-sun fs-4"></i>
+        </button>
       </li>
 
       <!-- User Dropdown -->
       <li class="nav-item navbar-dropdown dropdown-user dropdown">
         <a class="nav-link dropdown-toggle hide-arrow p-0" href="javascript:void(0);" data-bs-toggle="dropdown">
           <div class="avatar">
-            <img src="{{ asset('assets/img/avatars/blnk.png') }}" alt class="w-px-40 h-auto rounded-circle">
+            <div class="avatar d-flex align-items-center justify-content-center bg-light rounded-circle" style="width: 40px; height: 40px;">
+              <i class="bx bx-user fs-3 text-primary"></i>
+            </div>
           </div>
         </a>
 
@@ -59,7 +60,9 @@ $userEmail = $ldapUser['mail'] ?? Auth::user()->email ?? '';
                 <div class="d-flex">
                   <div class="flex-shrink-0 me-3">
                     <div class="avatar">
-                      <img src="{{ asset('assets/img/avatars/blnk.png') }}" alt class="w-px-40 h-auto rounded-circle">
+                      <div class="avatar d-flex align-items-center justify-content-center bg-light rounded-circle" style="width: 40px; height: 40px;">
+                        <i class="bx bx-user fs-3 text-primary"></i>
+                      </div>
                     </div>
                   </div>
                   <div class="flex-grow-1">
@@ -74,7 +77,7 @@ $userEmail = $ldapUser['mail'] ?? Auth::user()->email ?? '';
               <form action="{{ route('logout') }}" method="POST">
                 @csrf
                 <button type="submit" class="dropdown-item">
-                  <i class="bx bx-power-off bx-md me-3"></i><span>Log Out</span>
+                  <i class="bx bx-power-off fs-5 me-2"></i><span class="fw-medium">Log Out</span>
                 </button>
               </form>
             </li>
@@ -92,7 +95,6 @@ $userEmail = $ldapUser['mail'] ?? Auth::user()->email ?? '';
           @endif
         </ul>
       </li>
-      <!-- /User Dropdown -->
     </ul>
   </div>
 
@@ -101,27 +103,91 @@ $userEmail = $ldapUser['mail'] ?? Auth::user()->email ?? '';
   @endif
 </nav>
 
-<!-- Theme toggle script & styling sama seperti sebelumnya -->
+<!-- Theme Toggle Script -->
 <script>
 document.addEventListener('DOMContentLoaded', function () {
-  const checkbox = document.getElementById('theme-toggle-checkbox');
+  const toggleBtn = document.getElementById('theme-toggle');
+  const icon = document.getElementById('theme-icon');
   const html = document.documentElement;
+
   const savedTheme = localStorage.getItem('theme') || 'light';
   html.setAttribute('data-theme', savedTheme);
-  checkbox.checked = savedTheme === 'dark';
-  checkbox.addEventListener('change', function () {
-    const newTheme = this.checked ? 'dark' : 'light';
+  icon.className = savedTheme === 'dark' ? 'bx bx-moon fs-4' : 'bx bx-sun fs-4';
+
+  toggleBtn.addEventListener('click', function () {
+    const currentTheme = html.getAttribute('data-theme');
+    const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
     html.setAttribute('data-theme', newTheme);
     localStorage.setItem('theme', newTheme);
+    icon.className = newTheme === 'dark' ? 'bx bx-moon fs-4' : 'bx bx-sun fs-4';
   });
 });
 </script>
 
+<!-- Theme Toggle Styling -->
 <style>
-.switch { position: relative; display: inline-block; width: 48px; height: 24px; }
-.switch input { opacity: 0; width: 0; height: 0; }
-.slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #ccc; transition: .4s; border-radius: 24px; }
-.slider:before { position: absolute; content: ""; height: 18px; width: 18px; left: 3px; bottom: 3px; background-color: white; transition: .4s; border-radius: 50%; }
-input:checked + .slider { background-color: #14a2ba; }
-input:checked + .slider:before { transform: translateX(24px); }
+.glass-toggle-btn {
+  width: 42px;
+  height: 42px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  backdrop-filter: blur(8px);
+  background: rgba(255, 255, 255, 0.25);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+
+.glass-toggle-btn:hover {
+  transform: scale(1.1);
+  background: rgba(20, 162, 186, 0.25);
+  box-shadow: 0 6px 14px rgba(20, 162, 186, 0.2);
+}
+
+#theme-icon {
+  color: #14a2ba;
+  transition: color 0.3s ease;
+}
+
+[data-theme='dark'] #theme-icon {
+  color: #fdd835;
+}
+
+.dropdown-item i {
+  vertical-align: middle;
+}
+.dropdown-item span {
+  line-height: 1;
+}
+
+[data-theme='dark'] .dropdown-menu {
+  background-color: #2b2b3c !important;
+  color: #e0e0e0 !important;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+[data-theme='dark'] .dropdown-menu .dropdown-item {
+  color: #e0e0e0 !important;
+}
+
+[data-theme='dark'] .dropdown-menu .dropdown-item:hover {
+  background-color: rgba(255, 255, 255, 0.05);
+}
+
+[data-theme='dark'] .dropdown-menu i {
+  color: #fdd835 !important; 
+  transition: color 0.3s ease;
+}
+
+[data-theme='dark'] .navbar .bx-user {
+  color: #fdd835 !important; 
+  transition: color 0.3s ease;
+}
+
+[data-theme='light'] .navbar .bx-user {
+  color: #14a2ba !important; 
+}
 </style>

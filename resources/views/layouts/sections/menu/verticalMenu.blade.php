@@ -35,7 +35,7 @@
 
     <li class="menu-item {{ request()->is('tables/laptop') ? 'active' : '' }}">
       <a href="{{ url('tables/laptop') }}" class="menu-link">
-        <i class="bx bx-monitor"></i>
+        <i class="bx bx-laptop"></i>
         <div>Daftar Laptop</div>
       </a>
     </li>
@@ -68,7 +68,7 @@
   </ul>
 </aside>
 
-{{-- CSS menu yg aktif --}}
+{{-- CSS highlight menu aktif --}}
 <style>
   #layout-menu .menu-item.active > .menu-link {
     background-color: #ffffff !important;
@@ -94,5 +94,18 @@
 
   #layout-menu .menu-item:not(.active) > .menu-link:hover {
     background-color: rgba(255, 255, 255, 0.15) !important;
+  }
+
+  #layout-menu .menu-link i {
+    margin-right: 10px; 
+  }
+  #layout-menu .menu-link {
+    display: flex;
+    align-items: center;
+  }
+
+  #layout-menu .menu-link i {
+    font-size: 22px; 
+    margin-right: 10px;
   }
 </style>

@@ -148,7 +148,6 @@
   overflow: visible;
 }
 
-// Logo PLN
 .app-brand-logo {
   width: 160px;       
   max-width: 100%; 
@@ -157,7 +156,6 @@
   margin: 0;          
 }
 
-// Teks di bawah logo
 .app-brand-text {
   font-size: 1rem;
   font-weight: bold;
@@ -346,7 +344,6 @@ body.dark-mode {
     }
   }
 
-  // 🌙 Sidebar / Vertical Menu
   .layout-menu,
   .menu-inner,
   .menu-vertical {
@@ -372,7 +369,6 @@ body.dark-mode {
     color: #b5b5b5 !important;
   }
 
-  // 🌙 Active menu item styling - HIGH CONTRAST
   .menu-item.active > .menu-link {
     background: linear-gradient(90deg, #125d72 0%, #0f4a5c 100%) !important;
     color: #ffffff !important;
@@ -387,13 +383,11 @@ body.dark-mode {
     color: #ffffff !important;
   }
 
-  // Active state untuk sub menu
   .menu-sub > .menu-item.active > .menu-link {
     background-color: rgba(18, 93, 114, 0.5) !important;
     color: #ffffff !important;
   }
 
-  // 🌙 Scrollbar
   ::-webkit-scrollbar {
     width: 8px;
   }
@@ -458,7 +452,6 @@ body.dark-mode {
     background-color: #1e1e2c !important;
   }
 
-  // 🌙 Vertical menu styling
   .layout-menu,
   .menu-inner,
   .menu-vertical {
@@ -484,7 +477,6 @@ body.dark-mode {
     color: #9a9aaa !important;
   }
 
-  // 🌙 Active menu item - HIGH CONTRAST
   .menu-item.active > .menu-link {
     background: linear-gradient(90deg, #125d72 0%, #0f4a5c 100%) !important;
     color: #ffffff !important;
@@ -499,7 +491,6 @@ body.dark-mode {
     color: #ffffff !important;
   }
 
-  // Active state untuk sub menu
   .menu-sub > .menu-item.active > .menu-link {
     background-color: rgba(18, 93, 114, 0.5) !important;
     color: #ffffff !important;
@@ -507,7 +498,7 @@ body.dark-mode {
 }
 
 /* =======================
-   Tombol di Dark Mode
+   Dark Mode Button
 ======================= */
 [data-theme="dark"] {
   .btn {
@@ -516,7 +507,6 @@ body.dark-mode {
     transition: all 0.2s ease-in-out;
   }
 
-  /* Tombol utama (primary) */
   .btn-primary {
     background-color: #6c63ff !important;
     color: #fff !important;
@@ -526,7 +516,6 @@ body.dark-mode {
     }
   }
 
-  /* Tombol sukses (success) */
   .btn-success {
     background-color: #3cb371 !important;
     color: #fff !important;
@@ -536,7 +525,6 @@ body.dark-mode {
     }
   }
 
-  /* Tombol danger (hapus, dsb) */
   .btn-danger {
     background-color: #e74c3c !important;
     color: #fff !important;
@@ -546,7 +534,6 @@ body.dark-mode {
     }
   }
 
-  /* Tombol secondary / cancel */
   .btn-secondary {
     background-color: #444460 !important;
     color: #ddd !important;
@@ -556,7 +543,6 @@ body.dark-mode {
     }
   }
 
-  /* Tombol outline */
   .btn-outline-primary {
     color: #9b93ff !important;
     border-color: #9b93ff !important;
@@ -578,7 +564,6 @@ body.dark-mode {
   margin-right: 1rem;
 }
 
-/* Gaya dasar switch */
 .switch {
   position: relative;
   display: inline-block;
@@ -592,7 +577,6 @@ body.dark-mode {
   height: 0;
 }
 
-/* Slider bulat */
 .slider {
   position: absolute;
   cursor: pointer;
@@ -614,7 +598,6 @@ body.dark-mode {
   border-radius: 50%;
 }
 
-/* Saat toggle aktif */
 input:checked + .slider {
   background-color: #6c63ff;
 }
@@ -623,12 +606,10 @@ input:checked + .slider:before {
   transform: translateX(24px);
 }
 
-/* Tambahan glow efek di dark mode */
 [data-theme="dark"] .slider {
   background-color: #9b93ff;
 }
 
-/* Default Light Mode */
 :root {
   --bg-color: #ffffff;
   --text-color: #222222;
