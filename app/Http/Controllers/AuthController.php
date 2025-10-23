@@ -66,8 +66,6 @@ class AuthController extends Controller
         return back()->withErrors(['name' => 'Login gagal: Nama atau password salah.'])->withInput();
     }
 
-
-
     public function register(Request $request)
     {
         $request->validate([

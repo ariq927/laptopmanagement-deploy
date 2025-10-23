@@ -1,4 +1,4 @@
-<aside id="layout-menu" class="layout-menu menu-vertical menu bg-menu-theme" style="background-color: #005bac;">
+<aside id="layout-menu" class="layout-menu menu-vertical menu bg-menu-theme">
   <!-- Logo / App Brand -->
   <div class="app-brand demo">
     <a href="{{ Auth::check() 
@@ -68,19 +68,47 @@
   </ul>
 </aside>
 
-{{-- CSS highlight menu aktif --}}
+{{-- CSS menu aktif dan Dark Mode --}}
 <style>
+  /* Light Mode - Default */
+  #layout-menu {
+    background: #14a2ba !important;
+  }
+
+  /* Dark Mode */
+  [data-theme="dark"] #layout-menu,
+  body.dark-mode #layout-menu {
+    background: #2b2b3c !important;
+  }
+
   #layout-menu .menu-item.active > .menu-link {
-    background-color: #ffffff !important;
+    background-color: rgba(255, 255, 255, 0.95) !important;
     color: #14a2ba !important;
     font-weight: 700 !important;
     border-radius: 8px !important;
     margin: 0 8px !important;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1) !important;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.15) !important;
   }
 
   #layout-menu .menu-item.active > .menu-link i {
     color: #14a2ba !important;
+  }
+
+  [data-theme="dark"] #layout-menu .menu-item.active > .menu-link,
+  body.dark-mode #layout-menu .menu-item.active > .menu-link {
+    background-color: rgba(255, 255, 255, 0.15) !important;
+    color: #ffffff !important;
+    font-weight: 700 !important;
+    border-radius: 8px !important;
+    margin: 0 8px !important;
+    box-shadow: 0 2px 6px rgba(255, 255, 255, 0.2) !important;
+    border-left: 3px solid #ffffff !important;
+    padding-left: calc(1rem - 3px) !important;
+  }
+
+  [data-theme="dark"] #layout-menu .menu-item.active > .menu-link i,
+  body.dark-mode #layout-menu .menu-item.active > .menu-link i {
+    color: #ffffff !important;
   }
 
   #layout-menu .menu-item:not(.active) > .menu-link {
@@ -92,20 +120,56 @@
     color: #ffffff !important;
   }
 
-  #layout-menu .menu-item:not(.active) > .menu-link:hover {
-    background-color: rgba(255, 255, 255, 0.15) !important;
+  [data-theme="dark"] #layout-menu .menu-item:not(.active) > .menu-link,
+  body.dark-mode #layout-menu .menu-item:not(.active) > .menu-link {
+    color: #ffffff !important;
   }
 
-  #layout-menu .menu-link i {
-    margin-right: 10px; 
+  [data-theme="dark"] #layout-menu .menu-item:not(.active) > .menu-link i,
+  body.dark-mode #layout-menu .menu-item:not(.active) > .menu-link i {
+    color: #ffffff !important;
   }
+
+  #layout-menu .menu-item:not(.active) > .menu-link:hover {
+    background-color: rgba(255, 255, 255, 0.15) !important;
+    border-radius: 8px !important;
+    margin: 0 8px !important;
+  }
+
+  [data-theme="dark"] #layout-menu .menu-item:not(.active) > .menu-link:hover,
+  body.dark-mode #layout-menu .menu-item:not(.active) > .menu-link:hover {
+    background-color: rgba(255, 255, 255, 0.1) !important;
+  }
+
+  #layout-menu .menu-header-text {
+    color: rgba(255, 255, 255, 0.85) !important;
+    font-weight: 600 !important;
+    letter-spacing: 0.5px;
+  }
+
+  [data-theme="dark"] #layout-menu .menu-header-text,
+  body.dark-mode #layout-menu .menu-header-text {
+    color: rgba(255, 255, 255, 0.7) !important;
+  }
+
   #layout-menu .menu-link {
     display: flex;
     align-items: center;
+    transition: all 0.2s ease;
   }
 
   #layout-menu .menu-link i {
     font-size: 22px; 
     margin-right: 10px;
+  }
+
+  [data-theme="dark"] #layout-menu .menu-inner,
+  body.dark-mode #layout-menu .menu-inner {
+    background: transparent !important;
+  }
+
+  [data-theme="dark"] .app-brand-logo,
+  body.dark-mode .app-brand-logo {
+    filter: brightness(0.95);
   }
 </style>
