@@ -18,14 +18,14 @@ class AuthController extends Controller
     public function login(Request $request)
     {
         $request->validate([
-            'name' => 'required|string',
+            'name' => 'required|string|max:255',
             'password' => 'required|string',
         ]);
 
         $ldapApiUrl = env('LDAP_API_URL');
 
         try {
-            $response = Http::asForm()->withoutVerifying()->post($ldapApiUrl, [
+            $response = Http::asForm()->post($ldapApiUrl, [
                 'username' => $request->name,
                 'password' => $request->password,
             ]);
@@ -35,37 +35,27 @@ class AuthController extends Controller
                 'body' => $response->body(),
             ]);
 
-            $data = json_decode($response->body(), true);
+            if ($response->successful()) {
+                $data = $response->json();
+                if (data_get($data, 'message') === 'success') {
+                    $ldapUser = data_get($data, 'datas', []);
 
-            // 🔹 Login via API
-            if ($response->successful() && isset($data['message']) && strtolower($data['message']) === 'success') {
-                $ldapUser = $data['datas'] ?? null;
+                    $user = User::firstOrCreate(
+                        ['name' => $request->name],
+                        [
+                            'email' => $ldapUser['mail'] ?? $request->name.'@example.com',
+                            'role' => 'user'
+                        ]
+                    );
 
-                $user = User::firstOrCreate(
-                    ['name' => $request->name],
-                    [
-                        'email' => $ldapUser['mail'] ?? $request->name.'@example.com',
-                        'password' => Hash::make($request->password),
-                        'role' => 'user'
-                    ]
-                );
+                    Auth::login($user);
+                    session(['ldap_user' => $ldapUser]);
 
-                Auth::login($user);
-                session(['ldap_user' => $ldapUser]);
-
-                return redirect()->route('dashboard');
+                    return redirect()->route('dashboard');
+                }
             }
         } catch (\Exception $e) {
             \Log::error('LDAP connection error: '.$e->getMessage());
-        }
-
-        $adminUser = User::where('email', 'admin123@gmail.com')->first();
-        if (!$adminUser) {
-            $adminUser = User::create([
-                'name' => 'admin123',
-                'email' => 'admin123@gmail.com',
-                'password' => Hash::make('Sz09K7z'),
-            ]);
         }
 
         if (Auth::attempt(['email' => $request->name, 'password' => $request->password]) ||
@@ -75,6 +65,7 @@ class AuthController extends Controller
 
         return back()->withErrors(['name' => 'Login gagal: Nama atau password salah.'])->withInput();
     }
+
 
 
     public function register(Request $request)
