@@ -136,20 +136,11 @@
             @endif
 
             <form action="{{ route('laporan.export') }}" method="get" class="row g-4 mt-4">
-                <div class="col-md-6">
+                <!-- <div class="col-md-6">
                     <label for="department" class="form-label fw-semibold">Department</label>
                     <input type="text" name="department" id="department" class="form-control py-2" placeholder="Masukkan nama departemen">
-                </div>
-
-                <div class="col-md-6">
-                    <label for="status" class="form-label fw-semibold">Status</label>
-                    <select name="status" id="status" class="form-select py-2">
-                        <option value="">Semua</option>
-                        <option value="aktif">Aktif</option>
-                        <option value="selesai">Selesai</option>
-                    </select>
-                </div>
-
+                </div> -->
+               
                 <div class="col-md-6">
                     <label for="from" class="form-label fw-semibold">Dari Tanggal</label>
                     <input type="date" name="from" id="from" class="form-control py-2">
@@ -158,6 +149,15 @@
                 <div class="col-md-6">
                     <label for="to" class="form-label fw-semibold">Sampai Tanggal</label>
                     <input type="date" name="to" id="to" class="form-control py-2">
+                </div>
+
+                 <div class="col-md-6">
+                    <label for="status" class="form-label fw-semibold">Status</label>
+                    <select name="status" id="status" class="form-select py-2">
+                        <option value="">Semua</option>
+                        <option value="aktif">Aktif</option>
+                        <option value="selesai">Selesai</option>
+                    </select>
                 </div>
 
                 <div class="col-md-6">

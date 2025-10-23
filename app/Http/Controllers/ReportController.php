@@ -35,10 +35,7 @@ class ReportController extends Controller
                 return response('<h3 style="text-align:center; color:red">Tanggal mulai tidak boleh lebih besar dari tanggal selesai</h3>');
             }
 
-            $query->where(function ($q) use ($from, $to) {
-                $q->whereBetween('tanggal_mulai', [$from, $to])
-                  ->orWhereBetween('tanggal_selesai', [$from, $to]);
-            });
+            $query->whereBetween('tanggal_mulai', [$from, $to]);
         }
 
         $peminjaman = $query->get();

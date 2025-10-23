@@ -17,7 +17,7 @@
         <tr style="background-color: #f2f2f2; text-align: center;">
             <th>No</th>
             <th>Nama</th>
-            <th>Department</th>
+            <th>Kode Pegawai</th>
             <th>Merek Laptop</th>
             <th>Tipe Laptop</th>
             <th>Tanggal Mulai</th>

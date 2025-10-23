@@ -18,8 +18,13 @@
       </div>
 
       <div class="mb-3">
-        <label class="form-label">Departemen</label>
+        <label class="form-label">Kode Pegawai</label>
         <input type="text" id="department" name="department" class="form-control" readonly>
+      </div>
+
+      <div class="mb-3">
+        <label class="form-label">Email</label>
+        <input type="text" id="nomor_telepon" name="nomor_telepon" class="form-control" readonly>
       </div>
 
         <div class="row">
@@ -33,11 +38,6 @@
           </div>
         </div>
 
-
-      <div class="mb-3">
-        <label class="form-label">Nomor Telepon</label>
-        <input type="text" id="nomor_telepon" name="nomor_telepon" class="form-control" readonly>
-      </div>
 
       <div class="d-flex justify-content-between">
         <a href="{{ route('laptop.index') }}" class="btn btn-outline-secondary">
@@ -69,17 +69,24 @@ $(document).ready(function () {
             data: function (params) {
                 return { q: params.term };
             },
-           processResults: function (data) {
-              return {
-                  results: data.data.map(emp => ({
-                      id: emp.employeeName,
-                      text: emp.employeeName,
-                      dept: emp.employeeCode || '-', 
-                      phone: emp.employeeEmail || '-'
-                  }))
-              };
-          }
-
+            processResults: function (data) {
+                return {
+                    results: data.data.map(emp => ({
+                        id: emp.employeeName, 
+                        text: emp.employeeName, 
+                        code: emp.employeeCode || '-', 
+                        dept: emp.employeeCode || '-', 
+                        phone: emp.employeeEmail || '-'
+                    }))
+                };
+            }
+        },
+        templateResult: function (data) {
+            if (!data.id) return data.text;
+            return `${data.text} - ${data.code}`; 
+        },
+        templateSelection: function (data) {
+            return data.text; 
         }
     });
 
@@ -87,6 +94,11 @@ $(document).ready(function () {
         const selected = e.params.data;
         deptInput.value = selected.dept;
         phoneInput.value = selected.phone;
+    });
+
+    $('#nama').on('select2:clear', function () {
+        deptInput.value = '';
+        phoneInput.value = '';
     });
 });
 </script>

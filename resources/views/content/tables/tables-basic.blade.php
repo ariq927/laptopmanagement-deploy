@@ -30,7 +30,7 @@
         <tr>
           <th class="text-white fw-bold">No</th>
           <th class="text-white fw-bold">Nama</th>
-          <th class="text-white fw-bold">Departemen</th>
+          <th class="text-white fw-bold">Kode Pegawai</th>
           <th class="text-white fw-bold">Laptop</th>
           <th class="text-white fw-bold">Tanggal Pinjam</th>
           <th class="text-white fw-bold">Tanggal Selesai</th>
