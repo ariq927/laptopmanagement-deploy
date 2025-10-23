@@ -15,45 +15,45 @@ RUN apt-get update && apt-get install -y \
 # Enable Apache mod_rewrite
 RUN a2enmod rewrite
 
-# Install Node.js (untuk build frontend)
+# Install Node.js 20
 RUN curl -fsSL https://deb.nodesource.com/setup_20.x | bash - \
     && apt-get install -y nodejs
 
-# Install Composer
+# Install Composer globally
 RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
 
-# Set working directory
 WORKDIR /var/www/html
 
-# Copy semua file ke container
+# Copy project files
 COPY . /var/www/html
 
-# Buat folder penting Laravel
+# Create necessary Laravel directories
 RUN mkdir -p storage/framework/views storage/framework/cache storage/app storage/logs bootstrap/cache
 
-# Install dependency PHP
+# Install PHP dependencies
 RUN composer install --optimize-autoloader --no-dev
 
-# Build frontend
+# Build frontend assets
 RUN npm install && npm run build
 
-# Permission fix
+# Set permissions
 RUN chmod -R 775 storage bootstrap/cache public/build \
     && chown -R www-data:www-data storage bootstrap/cache public/build
 
-# Set document root Apache
+# Set Apache document root
 ENV APACHE_DOCUMENT_ROOT=/var/www/html/public
 
+# Update Apache configs to use the new doc root
 RUN sed -ri -e 's!/var/www/html!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/sites-available/*.conf && \
     sed -ri -e 's!/var/www/!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/apache2.conf /etc/apache2/conf-available/*.conf
 
-# ✅ Gunakan port dari Railway (atau 80 di lokal)
-RUN sed -i "s/Listen 80/Listen ${PORT:-80}/" /etc/apache2/ports.conf && \
-    sed -i "s/:80>/:${PORT:-80}>/g" /etc/apache2/sites-available/000-default.conf
+# Make Apache listen to the dynamic Railway port
+RUN echo "Listen ${PORT}" >> /etc/apache2/ports.conf
 
-EXPOSE ${PORT:-80}
+# Expose port (default to 8080 if Railway doesn’t set $PORT)
+EXPOSE ${PORT:-8080}
 
-# Copy entrypoint custom
+# Copy entrypoint
 COPY docker-entrypoint.sh /usr/local/bin/
 RUN chmod +x /usr/local/bin/docker-entrypoint.sh
 
