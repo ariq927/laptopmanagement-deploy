@@ -126,8 +126,7 @@ function showImageModal(src) {
   
   modalImage.src = src;
   modal.style.display = 'flex';
-  document.body.style.overflow = 'hidden'; // Prevent scroll
-}
+  document.body.style.overflow = 'hidden'; 
 
 function closeImageModal() {
   console.log('❌ Closing modal');

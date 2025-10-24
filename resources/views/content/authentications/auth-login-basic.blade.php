@@ -2,6 +2,18 @@
 
 @section('title', 'Login - Laptop Management PLN IPS')
 
+@section('page-style')
+<style>
+.toggle-password-span {
+  cursor: pointer !important;
+  user-select: none !important;
+  pointer-events: auto !important;
+  display: inline-flex !important;
+  align-items: center !important;
+}
+</style>
+@endsection
+
 @section('content')
 <div class="container">
   <div class="authentication-wrapper authentication-basic d-flex justify-content-center align-items-center" style="min-height:100vh;">
@@ -28,7 +40,9 @@
               <label class="form-label" for="password">Password</label>
               <div class="input-group input-group-merge">
                 <input type="password" id="password" class="form-control" name="password" required>
-                <span class="input-group-text cursor-pointer"><i class="bx bx-hide"></i></span>
+                <span class="input-group-text toggle-password-span" id="togglePasswordBtn">
+                  <i class="bx bx-hide" id="toggleIcon"></i>
+                </span>
               </div>
             </div>
 
@@ -39,26 +53,52 @@
     </div>
   </div>
 </div>
+@endsection
 
-<!-- Toggle Password Script -->
+@section('page-script')
 <script>
-document.addEventListener('DOMContentLoaded', function () {
-  const togglePassword = document.querySelector('.form-password-toggle .input-group-text');
-  const passwordInput = document.querySelector('#password');
-  const icon = togglePassword.querySelector('i');
-
-  togglePassword.addEventListener('click', function () {
-    const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
-    passwordInput.setAttribute('type', type);
+(function() {
+  'use strict';
+  
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initToggle);
+  } else {
+    initToggle();
+  }
+  
+  function initToggle() {
+    const toggleBtn = document.getElementById('togglePasswordBtn');
+    const passwordInput = document.getElementById('password');
+    const icon = document.getElementById('toggleIcon');
     
-    if(type === 'password'){
-      icon.classList.remove('bx-show');
-      icon.classList.add('bx-hide');
-    } else {
-      icon.classList.remove('bx-hide');
-      icon.classList.add('bx-show');
+    if (!toggleBtn || !passwordInput || !icon) {
+      console.error('Element tidak ditemukan');
+      return;
     }
-  });
-});
+    
+    // Clone untuk hapus listener lama
+    const newToggleBtn = toggleBtn.cloneNode(true);
+    toggleBtn.parentNode.replaceChild(newToggleBtn, toggleBtn);
+    
+    // Add listener ke element baru
+    newToggleBtn.addEventListener('click', function(e) {
+      e.preventDefault();
+      e.stopPropagation();
+      
+      const newIcon = document.getElementById('toggleIcon');
+      const newPasswordInput = document.getElementById('password');
+      
+      if (newPasswordInput.type === 'password') {
+        newPasswordInput.type = 'text';
+        newIcon.classList.remove('bx-hide');
+        newIcon.classList.add('bx-show');
+      } else {
+        newPasswordInput.type = 'password';
+        newIcon.classList.remove('bx-show');
+        newIcon.classList.add('bx-hide');
+      }
+    });
+  }
+})();
 </script>
 @endsection
