@@ -9,13 +9,15 @@ $userEmail = $ldapUser['mail'] ?? Auth::user()->email ?? '';
 
 <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet">
 
-<!-- Navbar -->
 @if($navbarDetached == 'navbar-detached')
-<nav class="layout-navbar {{ $containerNav }} navbar navbar-expand-xl {{ $navbarDetached }} align-items-center bg-navbar-theme" id="layout-navbar">
+<nav class="layout-navbar {{ $containerNav }} navbar navbar-expand-xl {{ $navbarDetached }} align-items-center bg-navbar-theme navbar-card" 
+     id="layout-navbar">
 @else
-<nav class="layout-navbar navbar navbar-expand-xl align-items-center bg-navbar-theme" id="layout-navbar">
+<nav class="layout-navbar navbar navbar-expand-xl align-items-center bg-navbar-theme navbar-card" 
+     id="layout-navbar">
   <div class="{{ $containerNav }}">
 @endif
+
 
   @if(isset($navbarFull))
   <div class="navbar-brand app-brand demo d-none d-xl-flex py-0 me-4">
@@ -309,5 +311,15 @@ document.addEventListener('DOMContentLoaded', function () {
 
 .dropdown-user .dropdown-toggle:hover {
   transform: scale(1.05);
+}
+
+.navbar-card {
+  border-radius: 25px;        /* Sudut  */
+  padding-left: 0rem;       /* Jarak kiri isi navbar */
+  padding-right: 1.3rem;      /* Jarak kanan isi navbar */
+  margin: 0 0.8rem;             /* Jarak navbar dari tepi layar */
+  width: auto;                /* Lebar */
+  max-width: 100%;             /* Maksimal lebar nvbarnye */
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2); /* Shadow */
 }
 </style>
