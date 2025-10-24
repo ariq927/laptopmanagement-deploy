@@ -40,14 +40,14 @@
     })();
   </script>
 
-  {{-- ===== Production CSS (sesuai manifest terbaru) ===== --}}
-  <link rel="stylesheet" href="{{ asset('build/assets/core-BnqA3ef1.css') }}">
-  <link rel="stylesheet" href="{{ asset('build/assets/theme-default-BHwaPkzT.css') }}">
-  <link rel="stylesheet" href="{{ asset('build/assets/_theme-DgAlyPUC.css') }}">
-  <link rel="stylesheet" href="{{ asset('build/assets/custom-override-B_FnKQlU.css') }}">
-  <link rel="stylesheet" href="{{ asset('build/assets/demo-ISkCbL8g.css') }}">
-  <link rel="stylesheet" href="{{ asset('build/assets/perfect-scrollbar-C2W1dvIo.css') }}">
-  <link rel="stylesheet" href="{{ asset('build/assets/boxicons-BXK9XXfn.css') }}">
+  {{-- ===== Production CSS (Otomatis dari manifest) ===== --}}
+  <link rel="stylesheet" href="{{ manifest_asset('resources/assets/vendor/scss/core.scss') }}">
+  <link rel="stylesheet" href="{{ manifest_asset('resources/assets/vendor/scss/theme-default.scss') }}">
+  <link rel="stylesheet" href="{{ manifest_asset('resources/assets/vendor/scss/_theme/_theme.scss') }}">
+  <link rel="stylesheet" href="{{ manifest_asset('resources/assets/vendor/scss/custom-override.scss') }}">
+  <link rel="stylesheet" href="{{ manifest_asset('resources/assets/css/demo.css') }}">
+  <link rel="stylesheet" href="{{ manifest_asset('resources/assets/vendor/libs/perfect-scrollbar/perfect-scrollbar.scss') }}">
+  <link rel="stylesheet" href="{{ manifest_asset('resources/assets/vendor/fonts/boxicons.scss') }}">
 
   @stack('styles')
 </head>
@@ -64,15 +64,14 @@
     </main>
   </div>
 
-  {{-- ===== Production JS (sesuai manifest terbaru) ===== --}}
-  <script src="{{ asset('build/assets/_commonjsHelpers-Cpj98o6Y.js') }}"></script>
-  <script src="{{ asset('build/assets/popper-CgINJS0r.js') }}"></script>
-  <script src="{{ asset('build/assets/bootstrap-BqFZZLXP.js') }}"></script>
-  <script src="{{ asset('build/assets/perfect-scrollbar-DPYX2UL_.js') }}"></script>
-  <script src="{{ asset('build/assets/menu-Bldkajpn.js') }}"></script>
-  <script src="{{ asset('build/assets/main-CWila6Zz.js') }}"></script>
-  <script src="{{ asset('build/assets/config-DRrfh9f1.js') }}"></script>
-  <script src="{{ asset('build/assets/helpers-6QHUpx47.js') }}"></script>
+  {{-- ===== Production JS (Otomatis dari manifest) ===== --}}
+  <script src="{{ manifest_asset('resources/assets/vendor/js/helpers.js') }}"></script>
+  <script src="{{ manifest_asset('resources/assets/vendor/libs/popper/popper.js') }}"></script>
+  <script src="{{ manifest_asset('resources/assets/vendor/js/bootstrap.js') }}"></script>
+  <script src="{{ manifest_asset('resources/assets/vendor/libs/perfect-scrollbar/perfect-scrollbar.js') }}"></script>
+  <script src="{{ manifest_asset('resources/assets/vendor/js/menu.js') }}"></script>
+  <script src="{{ manifest_asset('resources/assets/js/main.js') }}"></script>
+  <script src="{{ manifest_asset('resources/assets/js/config.js') }}"></script>
 
   {{-- Default scripts --}}
   @include('layouts/sections/scripts')

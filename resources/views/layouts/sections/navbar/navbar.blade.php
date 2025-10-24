@@ -45,7 +45,7 @@ $userEmail = $ldapUser['mail'] ?? Auth::user()->email ?? '';
 
       <!-- User Dropdown -->
       <li class="nav-item navbar-dropdown dropdown-user dropdown">
-        <a class="nav-link dropdown-toggle hide-arrow p-0" href="javascript:void(0);" data-bs-toggle="dropdown">
+        <a class="nav-link dropdown-toggle hide-arrow p-0" href="#" role="button">
           <div class="avatar">
             <div class="avatar d-flex align-items-center justify-content-center bg-light rounded-circle" style="width: 40px; height: 40px;">
               <i class="bx bx-user fs-3 text-primary"></i>
@@ -103,9 +103,10 @@ $userEmail = $ldapUser['mail'] ?? Auth::user()->email ?? '';
   @endif
 </nav>
 
-<!-- Theme Toggle Script -->
+<!-- Theme Toggle & Dropdown Script -->
 <script>
 document.addEventListener('DOMContentLoaded', function () {
+  // ===== Theme Toggle =====
   const toggleBtn = document.getElementById('theme-toggle');
   const icon = document.getElementById('theme-icon');
   const html = document.documentElement;
@@ -114,18 +115,57 @@ document.addEventListener('DOMContentLoaded', function () {
   html.setAttribute('data-theme', savedTheme);
   icon.className = savedTheme === 'dark' ? 'bx bx-moon fs-4' : 'bx bx-sun fs-4';
 
-  toggleBtn.addEventListener('click', function () {
-    const currentTheme = html.getAttribute('data-theme');
-    const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
-    html.setAttribute('data-theme', newTheme);
-    localStorage.setItem('theme', newTheme);
-    icon.className = newTheme === 'dark' ? 'bx bx-moon fs-4' : 'bx bx-sun fs-4';
-  });
+  if (toggleBtn) {
+    toggleBtn.addEventListener('click', function () {
+      const currentTheme = html.getAttribute('data-theme');
+      const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+      html.setAttribute('data-theme', newTheme);
+      localStorage.setItem('theme', newTheme);
+      icon.className = newTheme === 'dark' ? 'bx bx-moon fs-4' : 'bx bx-sun fs-4';
+    });
+  }
+
+  // ===== User Dropdown Manual Toggle =====
+  const dropdownToggle = document.querySelector('.dropdown-user .dropdown-toggle');
+  const dropdownMenu = document.querySelector('.dropdown-user .dropdown-menu');
+
+  if (dropdownToggle && dropdownMenu) {
+    // Toggle dropdown on click
+    dropdownToggle.addEventListener('click', function(e) {
+      e.preventDefault();
+      e.stopPropagation();
+      
+      const isShown = dropdownMenu.classList.contains('show');
+      
+      // Close all other dropdowns first
+      document.querySelectorAll('.dropdown-menu.show').forEach(menu => {
+        menu.classList.remove('show');
+      });
+      
+      // Toggle current dropdown
+      if (!isShown) {
+        dropdownMenu.classList.add('show');
+      }
+    });
+
+    // Close dropdown when clicking outside
+    document.addEventListener('click', function(e) {
+      if (!dropdownToggle.contains(e.target) && !dropdownMenu.contains(e.target)) {
+        dropdownMenu.classList.remove('show');
+      }
+    });
+
+    // Prevent dropdown from closing when clicking inside
+    dropdownMenu.addEventListener('click', function(e) {
+      e.stopPropagation();
+    });
+  }
 });
 </script>
 
-<!-- Theme Toggle Styling -->
+<!-- Theme Toggle & Dropdown Styling -->
 <style>
+/* Glass Toggle Button */
 .glass-toggle-btn {
   width: 42px;
   height: 42px;
@@ -156,25 +196,96 @@ document.addEventListener('DOMContentLoaded', function () {
   color: #fdd835;
 }
 
+/* Dropdown Base Styling */
+.dropdown-menu {
+  display: none;
+  position: absolute;
+  top: 100%;
+  right: 0;
+  z-index: 1000;
+  min-width: 12rem;
+  padding: 0.5rem 0;
+  margin: 0.125rem 0 0;
+  font-size: 0.9375rem;
+  color: #697a8d;
+  text-align: left;
+  list-style: none;
+  background-color: #fff;
+  background-clip: padding-box;
+  border: 1px solid rgba(0, 0, 0, 0.05);
+  border-radius: 0.375rem;
+  box-shadow: 0 0.25rem 1rem rgba(161, 172, 184, 0.45);
+  opacity: 0;
+  transform: translateY(-10px);
+  transition: opacity 0.15s ease, transform 0.15s ease;
+  pointer-events: none;
+}
+
+.dropdown-menu.show {
+  display: block;
+  opacity: 1;
+  transform: translateY(0);
+  pointer-events: auto;
+}
+
+/* Dropdown Items */
+.dropdown-item {
+  display: block;
+  width: 100%;
+  padding: 0.532rem 1.25rem;
+  clear: both;
+  font-weight: 400;
+  color: #697a8d;
+  text-align: inherit;
+  text-decoration: none;
+  white-space: nowrap;
+  background-color: transparent;
+  border: 0;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.dropdown-item:hover,
+.dropdown-item:focus {
+  color: #566a7f;
+  background-color: rgba(67, 89, 113, 0.04);
+}
+
 .dropdown-item i {
   vertical-align: middle;
 }
+
 .dropdown-item span {
   line-height: 1;
 }
 
+.dropdown-divider {
+  height: 0;
+  margin: 0.5rem 0;
+  overflow: hidden;
+  border-top: 1px solid rgba(0, 0, 0, 0.06);
+}
+
+/* Dark Theme Dropdown */
 [data-theme='dark'] .dropdown-menu {
   background-color: #2b2b3c !important;
   color: #e0e0e0 !important;
   border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 0.25rem 1rem rgba(0, 0, 0, 0.5);
 }
 
-[data-theme='dark'] .dropdown-menu .dropdown-item {
+[data-theme='dark'] .dropdown-item {
   color: #e0e0e0 !important;
 }
 
-[data-theme='dark'] .dropdown-menu .dropdown-item:hover {
+[data-theme='dark'] .dropdown-item:hover,
+[data-theme='dark'] .dropdown-item:focus {
   background-color: rgba(255, 255, 255, 0.05);
+  color: #ffffff !important;
+}
+
+[data-theme='dark'] .dropdown-divider {
+  border-top-color: rgba(255, 255, 255, 0.1);
 }
 
 [data-theme='dark'] .dropdown-menu i {
@@ -189,5 +300,14 @@ document.addEventListener('DOMContentLoaded', function () {
 
 [data-theme='light'] .navbar .bx-user {
   color: #14a2ba !important; 
+}
+
+/* User Avatar Hover Effect */
+.dropdown-user .dropdown-toggle {
+  transition: transform 0.2s ease;
+}
+
+.dropdown-user .dropdown-toggle:hover {
+  transform: scale(1.05);
 }
 </style>
