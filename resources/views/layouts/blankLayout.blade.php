@@ -12,7 +12,7 @@
 
     @yield('page-script')
 
-    {{-- ===== Production CSS (Otomatis dari manifest) ===== --}}
+    {{-- ===== Production CSS ===== --}}
   <link rel="stylesheet" href="{{ manifest_asset('resources/assets/vendor/scss/core.scss') }}">
   <link rel="stylesheet" href="{{ manifest_asset('resources/assets/vendor/scss/theme-default.scss') }}">
   <link rel="stylesheet" href="{{ manifest_asset('resources/assets/vendor/scss/_theme/_theme.scss') }}">
@@ -21,7 +21,7 @@
   <link rel="stylesheet" href="{{ manifest_asset('resources/assets/vendor/libs/perfect-scrollbar/perfect-scrollbar.scss') }}">
   <link rel="stylesheet" href="{{ manifest_asset('resources/assets/vendor/fonts/boxicons.scss') }}">
 
-  {{-- ===== Production JS (Otomatis dari manifest) ===== --}}
+  {{-- ===== Production JS ===== --}}
   <script src="{{ manifest_asset('resources/assets/vendor/js/helpers.js') }}"></script>
   <script src="{{ manifest_asset('resources/assets/vendor/libs/popper/popper.js') }}"></script>
   <script src="{{ manifest_asset('resources/assets/vendor/js/bootstrap.js') }}"></script>
