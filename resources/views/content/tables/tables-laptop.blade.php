@@ -3,6 +3,39 @@
 @section('title', 'Daftar Laptop')
 
 @section('content')
+<!-- Arsip -->
+<div id="archiveModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.7); z-index:9999; backdrop-filter:blur(5px);">
+  <div style="position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); background:linear-gradient(135deg, #14a2ba 0%, #0d7a8e 100%); padding:30px; border-radius:15px; box-shadow:0 10px 40px rgba(0,0,0,0.5); min-width:400px; border:2px solid rgba(255,255,255,0.2);">
+    <h4 style="color:#fff; margin-bottom:20px; text-align:center; font-weight:bold; text-shadow:2px 2px 4px rgba(0,0,0,0.3);">Arsipkan Laptop</h4>
+    <p style="color:#fff; margin-bottom:15px; opacity:0.9;">Masukkan keterangan pengarsipan:</p>
+    <textarea id="keteranganInput" class="form-control" rows="3" placeholder="Contoh: Rusak pada bagian keyboard" style="margin-bottom:20px; border:2px solid rgba(255,255,255,0.3); background:rgba(255,255,255,0.95);"></textarea>
+    <div style="display:flex; gap:10px; justify-content:flex-end;">
+      <button onclick="closeArchiveModal()" class="btn btn-light" style="font-weight:bold; padding:8px 20px;">Batal</button>
+      <button onclick="confirmArchive()" class="btn btn-danger" style="font-weight:bold; padding:8px 20px;">Arsipkan</button>
+    </div>
+  </div>
+</div>
+
+<!-- Restore -->
+<div id="restoreModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.7); z-index:9999; backdrop-filter:blur(5px);">
+  <div style="position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); background:linear-gradient(135deg, #10b981 0%, #059669 100%); padding:30px; border-radius:15px; box-shadow:0 10px 40px rgba(0,0,0,0.5); min-width:400px; border:2px solid rgba(255,255,255,0.2);">
+    <h4 style="color:#fff; margin-bottom:20px; text-align:center; font-weight:bold; text-shadow:2px 2px 4px rgba(0,0,0,0.3);">Kembalikan Laptop</h4>
+    <p style="color:#fff; margin-bottom:20px; opacity:0.9; text-align:center;">Apakah Anda yakin ingin mengembalikan laptop ini dari arsip?</p>
+    <div style="display:flex; gap:10px; justify-content:center;">
+      <button onclick="closeRestoreModal()" class="btn btn-light" style="font-weight:bold; padding:8px 20px;">Batal</button>
+      <button onclick="confirmRestore()" class="btn btn-success" style="font-weight:bold; padding:8px 20px;">Ya, Kembalikan</button>
+    </div>
+  </div>
+</div>
+
+<!-- Toast Notification -->
+<div id="toastNotification" style="position:fixed; top:20px; right:20px; min-width:300px; background:linear-gradient(135deg, #10b981 0%, #059669 100%); color:#fff; padding:15px 20px; border-radius:10px; box-shadow:0 8px 25px rgba(0,0,0,0.3); z-index:10000; display:none; transform:translateX(400px); transition:transform 0.3s ease; border:2px solid rgba(255,255,255,0.2);">
+  <div style="display:flex; align-items:center; gap:12px;">
+    <span style="font-size:24px;">✓</span>
+    <span id="toastMessage" style="font-weight:bold; font-size:14px;"></span>
+  </div>
+</div>
+
 <div class="card" id="laptopTableContainer"
      style="background-color: rgba(20,162,186,0.5); backdrop-filter: blur(10px); border: 1px solid rgba(20,162,186,0.3);">
   <div class="card-header d-flex justify-content-between align-items-center"
@@ -56,6 +89,8 @@
     let search = '';
     let perPage = 10;
     let currentPage = 1;
+    let laptopIdToArchive = null;
+    let laptopIdToRestore = null;
 
     const tableBody = document.getElementById('laptopTableBody');
     const tableInfo = document.getElementById('tableInfo');
@@ -140,23 +175,82 @@
     };
 
     window.archiveLaptop = (id) => {
-      fetch(`/api/laptop/${id}/archive`, { method: 'PATCH' })
+      laptopIdToArchive = id;
+      document.getElementById('archiveModal').style.display = 'block';
+      document.getElementById('keteranganInput').value = '';
+      document.getElementById('keteranganInput').focus();
+    };
+
+    window.closeArchiveModal = () => {
+      document.getElementById('archiveModal').style.display = 'none';
+      laptopIdToArchive = null;
+    };
+
+    window.confirmArchive = () => {
+      const keterangan = document.getElementById('keteranganInput').value.trim();
+      
+      if (keterangan === "") {
+        showToast("⚠️ Keterangan wajib diisi!", "#f59e0b");
+        return;
+      }
+
+      fetch(`/api/laptop/${laptopIdToArchive}/archive`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ keterangan })
+      })
         .then(res => {
           if (!res.ok) throw new Error();
-          alert('Laptop berhasil diarsip');
+          closeArchiveModal();
+          showToast("✓ Laptop berhasil diarsip!", "#10b981");
           fetchData(currentPage);
         })
-        .catch(() => alert('Gagal mengarsipkan laptop'));
+        .catch(() => {
+          showToast("✗ Gagal mengarsipkan laptop", "#ef4444");
+        });
+    };
+
+    window.showToast = (message, bgColor = "#10b981") => {
+      const toast = document.getElementById('toastNotification');
+      const toastMsg = document.getElementById('toastMessage');
+      
+      toast.style.background = `linear-gradient(135deg, ${bgColor} 0%, ${bgColor}dd 100%)`;
+      toastMsg.innerText = message;
+      toast.style.display = 'block';
+      
+      setTimeout(() => {
+        toast.style.transform = 'translateX(0)';
+      }, 10);
+      
+      setTimeout(() => {
+        toast.style.transform = 'translateX(400px)';
+        setTimeout(() => {
+          toast.style.display = 'none';
+        }, 300);
+      }, 3000);
     };
 
     window.restoreLaptop = (id) => {
-      fetch(`/api/laptop/${id}/restore`, { method: 'PATCH' })
+      laptopIdToRestore = id;
+      document.getElementById('restoreModal').style.display = 'block';
+    };
+
+    window.closeRestoreModal = () => {
+      document.getElementById('restoreModal').style.display = 'none';
+      laptopIdToRestore = null;
+    };
+
+    window.confirmRestore = () => {
+      fetch(`/api/laptop/${laptopIdToRestore}/restore`, { method: 'PATCH' })
         .then(res => {
           if (!res.ok) throw new Error();
-          alert('Laptop berhasil dikembalikan');
+          closeRestoreModal();
+          showToast("✓ Laptop berhasil dikembalikan!", "#10b981");
           fetchData(currentPage);
         })
-        .catch(() => alert('Gagal mengembalikan laptop'));
+        .catch(() => {
+          showToast("✗ Gagal mengembalikan laptop", "#ef4444");
+        });
     };
 
     searchInput.addEventListener('input', (e) => {

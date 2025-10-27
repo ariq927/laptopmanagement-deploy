@@ -129,14 +129,19 @@ class LaptopController extends Controller
         return redirect()->route('laptop.index')->with('success', 'Laptop berhasil diperbarui!');
     }
 
-    public function archive($id)
+    public function archive(Request $request, $id)
     {
         $laptop = LaptopData::findOrFail($id);
+
+        $data = $request->json()->all();
+
         $laptop->status = 'diarsip';
+        $laptop->keterangan = $data['keterangan'] ?? null;
         $laptop->save();
 
         return response()->json(['message' => 'Laptop berhasil diarsip']);
     }
+
 
     public function restore($id)
     {
@@ -197,20 +202,31 @@ class LaptopController extends Controller
     public function apiRestore($id)
     {
         $laptop = LaptopData::findOrFail($id);
+
         $laptop->status = 'tersedia';
+        $laptop->keterangan = null; // <--- tambahkan baris ini
         $laptop->save();
 
         return response()->json(['message' => 'Laptop berhasil dikembalikan']);
     }
 
-    public function apiArchive($id)
+
+    public function apiArchive(Request $request, $id)
     {
         $laptop = LaptopData::findOrFail($id);
+
+        $keterangan = $request->input('keterangan') ?? $request->json('keterangan');
+
         $laptop->status = 'diarsip';
+        $laptop->keterangan = $keterangan;
         $laptop->save();
 
-        return response()->json(['message' => 'Laptop berhasil diarsipkan']);
+        return response()->json([
+            'message' => 'Laptop berhasil diarsipkan',
+            'keterangan' => $keterangan
+        ]);
     }
+
 
     public function getData(Request $request)
     {

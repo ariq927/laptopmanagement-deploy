@@ -19,6 +19,7 @@ class LaptopData extends Model
         'stok',
         'status', 
         'foto',
-        'public_id'
+        'public_id',
+        'keterangan'
     ];
 }
