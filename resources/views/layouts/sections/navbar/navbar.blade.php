@@ -314,12 +314,12 @@ document.addEventListener('DOMContentLoaded', function () {
 }
 
 .navbar-card {
-  border-radius: 25px;        /* Sudut  */
-  padding-left: 0rem;       /* Jarak kiri isi navbar */
-  padding-right: 1.3rem;      /* Jarak kanan isi navbar */
-  margin: 0 0.8rem;             /* Jarak navbar dari tepi layar */
-  width: auto;                /* Lebar */
-  max-width: 100%;             /* Maksimal lebar nvbarnye */
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2); /* Shadow */
+  border-radius: 25px;         
+  padding-left: 0rem;       
+  padding-right: 1.3rem;      
+  margin: 0 0.8rem;            
+  width: auto;                
+  max-width: 100%;             
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2); 
 }
 </style>

@@ -3,56 +3,68 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\dashboard\Analytics;
-use App\Http\Controllers\layouts\WithoutMenu;
-use App\Http\Controllers\layouts\WithoutNavbar;
-use App\Http\Controllers\layouts\Fluid;
-use App\Http\Controllers\layouts\Container;
-use App\Http\Controllers\layouts\Blank;
-use App\Http\Controllers\pages\AccountSettingsAccount;
-use App\Http\Controllers\pages\AccountSettingsNotifications;
-use App\Http\Controllers\pages\AccountSettingsConnections;
-use App\Http\Controllers\pages\MiscError;
-use App\Http\Controllers\pages\MiscUnderMaintenance;
-use App\Http\Controllers\authentications\LoginBasic;
-use App\Http\Controllers\authentications\ForgotPasswordBasic;
+use App\Http\Controllers\layouts\{
+    WithoutMenu, WithoutNavbar, Fluid, Container, Blank
+};
+use App\Http\Controllers\pages\{
+    AccountSettingsAccount,
+    AccountSettingsNotifications,
+    AccountSettingsConnections,
+    MiscError,
+    MiscUnderMaintenance
+};
+use App\Http\Controllers\authentications\{
+    LoginBasic,
+    ForgotPasswordBasic
+};
 use App\Http\Controllers\cards\CardBasic;
-use App\Http\Controllers\user_interface\Accordion;
-use App\Http\Controllers\user_interface\Alerts;
-use App\Http\Controllers\user_interface\Badges;
-use App\Http\Controllers\user_interface\Buttons;
-use App\Http\Controllers\user_interface\Carousel;
-use App\Http\Controllers\user_interface\Collapse;
-use App\Http\Controllers\user_interface\Dropdowns;
-use App\Http\Controllers\user_interface\Footer;
-use App\Http\Controllers\user_interface\ListGroups;
-use App\Http\Controllers\user_interface\Modals;
-use App\Http\Controllers\user_interface\Navbar;
-use App\Http\Controllers\user_interface\Offcanvas;
-use App\Http\Controllers\user_interface\PaginationBreadcrumbs;
-use App\Http\Controllers\user_interface\Progress;
-use App\Http\Controllers\user_interface\Spinners;
-use App\Http\Controllers\user_interface\TabsPills;
-use App\Http\Controllers\user_interface\Toasts;
-use App\Http\Controllers\user_interface\TooltipsPopovers;
-use App\Http\Controllers\user_interface\Typography;
-use App\Http\Controllers\extended_ui\PerfectScrollbar;
-use App\Http\Controllers\extended_ui\TextDivider;
+use App\Http\Controllers\user_interface\{
+    Accordion,
+    Alerts,
+    Badges,
+    Buttons,
+    Carousel,
+    Collapse,
+    Dropdowns,
+    Footer,
+    ListGroups,
+    Modals,
+    Navbar,
+    Offcanvas,
+    PaginationBreadcrumbs,
+    Progress,
+    Spinners,
+    TabsPills,
+    Toasts,
+    TooltipsPopovers,
+    Typography
+};
+use App\Http\Controllers\extended_ui\{
+    PerfectScrollbar,
+    TextDivider
+};
 use App\Http\Controllers\icons\Boxicons;
-use App\Http\Controllers\form_elements\BasicInput;
-use App\Http\Controllers\form_elements\InputGroups;
-use App\Http\Controllers\form_layouts\VerticalForm;
-use App\Http\Controllers\form_layouts\HorizontalForm;
-use App\Http\Controllers\PeminjamanController;
-use App\Http\Controllers\AdminController;
-use App\Http\Controllers\AdminAuthController;
-use App\Http\Controllers\UserDashboardController;
-use App\Http\Controllers\PeminjamanNewController;
-use App\Http\Controllers\LaptopController;
+use App\Http\Controllers\form_elements\{
+    BasicInput,
+    InputGroups
+};
+use App\Http\Controllers\form_layouts\{
+    VerticalForm,
+    HorizontalForm
+};
+use App\Http\Controllers\{
+    PeminjamanController,
+    AdminController,
+    AdminAuthController,
+    UserDashboardController,
+    PeminjamanNewController,
+    LaptopController,
+    ReportController
+};
 use App\Http\Controllers\Api\PegawaiController;
+use App\Http\Controllers\tables\Basic as TablesBasic;
 use App\Exports\LaptopsExport;
 use Maatwebsite\Excel\Facades\Excel;
-use App\Http\Controllers\ReportController;
-use App\Http\Controllers\tables\Basic as TablesBasic;
 
 
 // ========================
@@ -67,20 +79,22 @@ Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 // ========================
 // USER DASHBOARD
 // ========================
+
 Route::get('/', [UserDashboardController::class, 'index'])->middleware('auth')->name('dashboard-analytics');
-Route::get('/dashboard', [UserDashboardController::class, 'index'])->middleware('auth')->name('user.dashboard');
+Route::get('/dashboard', [UserDashboardController::class, 'index'])->middleware('auth')->name('dashboard');
 
 
 // ========================
 // LAYOUTS & PAGES
 // ========================
+
 Route::get('/layouts/without-menu', [WithoutMenu::class, 'index'])->name('layouts-without-menu');
 Route::get('/layouts/without-navbar', [WithoutNavbar::class, 'index'])->name('layouts-without-navbar');
 Route::get('/layouts/fluid', [Fluid::class, 'index'])->name('layouts-fluid');
 Route::get('/layouts/container', [Container::class, 'index'])->name('layouts-container');
 Route::get('/layouts/blank', [Blank::class, 'index'])->name('layouts-blank');
 
-// pages
+// Pages
 Route::get('/pages/account-settings-account', [AccountSettingsAccount::class, 'index'])->name('account.setting');
 Route::get('/pages/account-settings-notifications', [AccountSettingsNotifications::class, 'index'])->name('pages-account-settings-notifications');
 Route::get('/pages/account-settings-connections', [AccountSettingsConnections::class, 'index'])->name('pages-account-settings-connections');
@@ -89,8 +103,7 @@ Route::get('/pages/misc-under-maintenance', [MiscUnderMaintenance::class, 'index
 Route::put('/account/update', [AccountSettingsAccount::class, 'update'])->name('account.update');
 
 
-
-// authentication views
+// Authentication Views
 Route::get('/auth/login-basic', [LoginBasic::class, 'index'])->name('auth-login-basic');
 Route::get('/auth/forgot-password-basic', [ForgotPasswordBasic::class, 'index'])->name('auth-reset-password-basic');
 
@@ -98,6 +111,7 @@ Route::get('/auth/forgot-password-basic', [ForgotPasswordBasic::class, 'index'])
 // ========================
 // USER INTERFACE
 // ========================
+
 Route::get('/cards/basic', [CardBasic::class, 'index'])->name('cards-basic');
 
 Route::get('/ui/accordion', [Accordion::class, 'index'])->name('ui-accordion');
@@ -120,20 +134,20 @@ Route::get('/ui/toasts', [Toasts::class, 'index'])->name('ui-toasts');
 Route::get('/ui/tooltips-popovers', [TooltipsPopovers::class, 'index'])->name('ui-tooltips-popovers');
 Route::get('/ui/typography', [Typography::class, 'index'])->name('ui-typography');
 
-// extended ui
+// Extended UI
 Route::get('/extended/ui-perfect-scrollbar', [PerfectScrollbar::class, 'index'])->name('extended-ui-perfect-scrollbar');
 Route::get('/extended/ui-text-divider', [TextDivider::class, 'index'])->name('extended-ui-text-divider');
 
-// icons
+// Icons
 Route::get('/icons/boxicons', [Boxicons::class, 'index'])->name('icons-boxicons');
 
 
 // ========================
 // FORMS
 // ========================
+
 Route::get('/forms/basic-inputs', [BasicInput::class, 'index'])->name('forms-basic-inputs');
 Route::get('/forms/input-groups', [InputGroups::class, 'index'])->name('forms-input-groups');
-
 Route::get('/form/layouts-vertical', [VerticalForm::class, 'index'])->name('form-layouts-vertical');
 Route::get('/form/layouts-horizontal', [HorizontalForm::class, 'index'])->name('form-layouts-horizontal');
 Route::view('/form-layout-horizontal', 'content.form-layout.form-layouts-horizontal')->name('form.horizontal');
@@ -142,6 +156,7 @@ Route::view('/form-layout-horizontal', 'content.form-layout.form-layouts-horizon
 // ========================
 // PEMINJAMAN (User)
 // ========================
+
 Route::get('/peminjaman', [PeminjamanNewController::class, 'index'])->name('peminjaman.index');
 Route::get('/peminjaman/create/{id}', [PeminjamanNewController::class, 'create'])->name('peminjaman.create');
 Route::delete('/peminjaman/selesai/{id}', [PeminjamanNewController::class, 'selesai'])->name('peminjaman.selesai');
@@ -151,9 +166,9 @@ Route::get('/tables/basic', [PeminjamanNewController::class, 'index'])->middlewa
 // ========================
 // ADMIN LOGIN & DASHBOARD
 // ========================
+
 Route::get('/admin/login', [AdminAuthController::class, 'showLoginForm'])->name('admin.login');
 Route::post('/admin/login', [AdminAuthController::class, 'login'])->name('admin.login.post');
-
 Route::get('/admin/register', [AdminAuthController::class, 'showRegisterForm'])->name('admin.register');
 Route::post('/admin/register', [AdminAuthController::class, 'register'])->name('admin.register.post');
 
@@ -165,55 +180,74 @@ Route::prefix('admin')->group(function () {
     // CRUD Laptop
     Route::post('/laptop', [AdminController::class, 'storeLaptop'])->name('admin.laptop.store');
     Route::delete('/laptop/{id}', [AdminController::class, 'destroyLaptop'])->name('admin.laptop.destroy');
-
     Route::delete('/peminjaman/{id}', [AdminController::class, 'removeUserLoan'])->name('admin.peminjaman.remove');
 });
 
-// CRUD Laptop (user scope)
+
+// CRUD Laptop (User Scope)
 Route::get('/laptop/{id}/edit', [AdminController::class, 'editLaptop'])->name('laptop.edit');
 Route::put('/laptop/{laptop}', [LaptopController::class, 'update'])->name('laptop.update');
 Route::delete('/laptop/{id}', [AdminController::class, 'destroyLaptop'])->name('laptop.destroy');
 Route::get('/tables/laptop', [AdminController::class, 'index'])->middleware('auth')->name('laptop.index');
 Route::get('/peminjaman/create/{id}', [PeminjamanNewController::class, 'create'])->name('peminjaman.create');
 
+
+// ========================
+// LOGIN (User)
+// ========================
+
 Route::get('/login', [LoginBasic::class, 'index'])->name('login');
 Route::post('/login', [LoginBasic::class, 'login'])->name('login.post');
-
-Route::get('/', [UserDashboardController::class, 'index'])->middleware('auth')->name('dashboard-analytics');
-
-Route::get('/dashboard', [UserDashboardController::class, 'index'])
-    ->middleware('auth')
-    ->name('dashboard');
-
 Route::post('/login', [AuthController::class, 'login'])->name('auth-login-basic-post');
 
-// Route::middleware(['auth'])->group(function () {
-    Route::get('/laptop/create', [LaptopController::class, 'create'])->name('laptop.create');
-    Route::post('/laptop', [LaptopController::class, 'store'])->name('laptop.store');
-    Route::post('/peminjaman/store', [PeminjamanNewController::class, 'store'])->name('peminjaman.store');
-// });
 
-
-Route::get('/pegawai', [PegawaiController::class, 'index'])->name('pegawai.index');
+// ========================
+// LAPTOP & PEMINJAMAN CRUD
+// ========================
 
 Route::get('/laptop/create', [LaptopController::class, 'create'])->name('laptop.create');
 Route::post('/laptop', [LaptopController::class, 'store'])->name('laptop.store');
+Route::post('/peminjaman/store', [PeminjamanNewController::class, 'store'])->name('peminjaman.store');
+
+
+// ========================
+// PEGAWAI
+// ========================
+
+Route::get('/pegawai', [PegawaiController::class, 'index'])->name('pegawai.index');
+
+
+// ========================
+// CARI PEMINJAM
+// ========================
 
 Route::get('/cari/peminjam', [PeminjamanNewController::class, 'cari'])->name('cari.nama');
 
-//Arsip Laptop
+
+// ========================
+// ARSIP LAPTOP
+// ========================
+
 Route::get('/laptop/data', [LaptopController::class, 'getData']);
 Route::get('/laptop/arsip', [LaptopController::class, 'arsipLaptop'])->name('laptop.arsip');
 Route::patch('/laptop/{id}/arsip', [LaptopController::class, 'archive'])->name('laptop.archive');
 Route::patch('/laptop/{id}/restore', [LaptopController::class, 'restore'])->name('laptop.restore');
 
-// buat laporan 
-Route::get('/laporan', function() {
+
+// ========================
+// LAPORAN
+// ========================
+
+Route::get('/laporan', function () {
     return view('content.reports.laporan');
 })->middleware('auth')->name('laporan');
 Route::get('/laporan/export', [ReportController::class, 'export'])->name('laporan.export');
 Route::get('/laporan/preview-pdf', [ReportController::class, 'previewPDF'])->name('laporan.previewPDF');
 
+
+// ========================
+// LDAP TEST
+// ========================
 
 Route::get('/ldap-test', function () {
     try {

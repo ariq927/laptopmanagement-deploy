@@ -58,7 +58,7 @@
     {{-- Sidebar Blade --}}
     @include('layouts/sections/menu/verticalMenu')
 
-    {{-- Konten utama --}}
+    {{-- Konten --}}
     <main id="main-content" class="flex-grow-1">
       @yield('layoutContent')
     </main>

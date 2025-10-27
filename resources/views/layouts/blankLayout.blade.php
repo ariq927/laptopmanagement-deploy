@@ -20,7 +20,7 @@
   <body>
     @yield('content')
 
-    {{-- ===== JS - Tambahkan type="module" ===== --}}
+    {{-- ===== JS  ===== --}}
     <script type="module" src="{{ manifest_asset('resources/assets/vendor/js/helpers.js') }}"></script>
     <script type="module" src="{{ manifest_asset('resources/assets/vendor/libs/popper/popper.js') }}"></script>
     <script type="module" src="{{ manifest_asset('resources/assets/vendor/js/bootstrap.js') }}"></script>

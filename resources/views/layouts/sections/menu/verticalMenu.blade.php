@@ -68,7 +68,7 @@
   </ul>
 </aside>
 
-{{-- CSS menu aktif dan Dark Mode --}}
+{{-- inline style --}}
 <style>
   /* Light Mode - Default */
   #layout-menu {

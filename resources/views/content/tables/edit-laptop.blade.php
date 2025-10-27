@@ -105,7 +105,7 @@
   </div>
 </div>
 
-{{-- Modal Fullscreen Image (Pure CSS/JS, No Bootstrap) --}}
+{{-- Fullscreen Image  --}}
 <div id="imageModal" class="custom-modal" style="display: none;">
   <div class="custom-modal-overlay"></div>
   <div class="custom-modal-content">
@@ -119,6 +119,7 @@
 <script>
 console.log('✅ Script loaded');
 
+// Pindahkan fungsi ke level global
 function showImageModal(src) {
   console.log('📸 Showing modal with image:', src);
   const modal = document.getElementById('imageModal');
@@ -127,6 +128,7 @@ function showImageModal(src) {
   modalImage.src = src;
   modal.style.display = 'flex';
   document.body.style.overflow = 'hidden'; 
+}
 
 function closeImageModal() {
   console.log('❌ Closing modal');
@@ -135,11 +137,9 @@ function closeImageModal() {
   document.body.style.overflow = 'auto'; 
 }
 
-// ===== Main Script =====
 document.addEventListener('DOMContentLoaded', function() {
   console.log('🚀 DOM Content Loaded');
 
-  // Setup close modal handlers
   const closeBtn = document.getElementById('closeModal');
   const modalOverlay = document.querySelector('.custom-modal-overlay');
   const modalImage = document.getElementById('modalImage');
