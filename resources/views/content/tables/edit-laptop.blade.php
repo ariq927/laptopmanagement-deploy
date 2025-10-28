@@ -72,7 +72,7 @@
             @else
               <img src="{{ asset('images/nophoto.png') }}" 
                    id="laptopImage"
-                   style="width: 100px; height: 100px; object-fit: contain;">
+                   style="width: 40px; height: 40px; object-fit: contain; opacity: 0.4;">
             @endif
           </div>
 
