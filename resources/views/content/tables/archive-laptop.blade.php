@@ -92,9 +92,6 @@
                                 @csrf
                                 @method('PATCH')
                                 <button type="button" class="btn btn-success btn-sm"
-                                    style="background-color: {{ $headerBgColor }}; border-color: {{ $headerBgColor }};"
-                                    onmouseover="this.style.backgroundColor='{{ $isDarkMode ? '#0d4a5c' : '#0f8399' }}'; this.style.transform='scale(1.05)';"
-                                    onmouseout="this.style.backgroundColor='{{ $headerBgColor }}'; this.style.transform='scale(1)';"
                                     onclick="openRestoreModal(this, '{{ $laptop->kode }}', '{{ $laptop->merek }} {{ $laptop->tipe }}', '{{ $laptop->keterangan }}')">
                                     Kembalikan
                                 </button>
