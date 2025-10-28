@@ -4,7 +4,7 @@
 
 @section('content')
 <div class="container py-4">
-  <div class="p-4" style="background-color: rgba(255,255,255,0.85); border-radius: 8px; position: relative;">
+  <div class="p-4 shadow-sm" style="background-color: rgba(255,255,255,0.9); border-radius: 12px; position: relative;">
     <h4 class="mb-4">Detail Laptop</h4>
 
     @php
@@ -12,7 +12,20 @@
     @endphp
 
     @unless($isReadOnly)
-      <button id="toggleEditBtn" class="btn btn-warning position-absolute top-0 end-0 m-3 px-4 py-2" style="border-radius: 0;">Edit</button>
+    <!-- Tombol Edit / Batal Edit -->
+    <button id="toggleEditBtn"
+      class="btn position-absolute top-0 end-0 m-3 px-4 py-2 d-flex align-items-center justify-content-center gap-2"
+      style="
+        border-radius: 40px;
+        font-size: 0.85rem;
+        background-color: #6c757d;
+        color: white;
+        border: none;
+        transition: all 0.25s ease;
+      ">
+      <i class='bx bx-edit-alt' style="font-size: 1rem;"></i>
+      <span>Edit</span>
+    </button>
     @endunless
 
     <form 
@@ -26,7 +39,7 @@
         @method('PUT')
       @endif
 
-      {{-- ID --}}
+      {{-- Kode Laptop --}}
       <div class="mb-3">
         <label class="form-label fw-semibold">Kode Laptop</label>
         <input type="text" class="form-control" value="{{ $laptop->kode }}" readonly>
@@ -49,7 +62,7 @@
         <label class="form-label fw-semibold">Spesifikasi</label>
         <textarea class="form-control editable-field" name="spesifikasi" rows="4" readonly>{{ $laptop->spesifikasi }}</textarea>
       </div>
-     
+
       {{-- Status --}}
       <div class="mb-3">
         <label class="form-label fw-semibold">Status</label>
@@ -60,15 +73,15 @@
       <div class="mb-3">
         <label class="form-label fw-semibold">Foto Laptop</label><br>
 
-        <div class="card shadow-sm p-2 border border-2 position-relative" 
-             style="width: 400px; height: 400px; background-color: rgba(255,255,255,0.5);">
+        <div class="card shadow-sm border-0 position-relative" 
+             style="width: 400px; height: 400px; background-color: rgba(245,245,245,0.6); border-radius: 12px;">
 
-          <div class="d-flex justify-content-center align-items-center" style="height: 100%; position: relative; z-index: 1;">
+          <div class="d-flex justify-content-center align-items-center h-100 position-relative">
             @if($laptop->foto)
               <img src="{{ $laptop->foto }}" 
                    id="laptopImage"
-                   class="img-fluid" 
-                   style="max-height: 100%; max-width: 100%; object-fit: contain; cursor: pointer;">
+                   class="img-fluid"
+                   style="max-height: 100%; max-width: 100%; object-fit: contain; cursor: pointer; border-radius: 8px;">
             @else
               <img src="{{ asset('images/nophoto.png') }}" 
                    id="laptopImage"
@@ -77,19 +90,20 @@
           </div>
 
           @unless($isReadOnly)
-            <div class="foto-btn-container d-none d-flex justify-content-center gap-2 mt-2 pb-2" 
-                 style="position: absolute; bottom: 0; left: 0; right: 0; z-index: 10;">
-              <label class="btn btn-primary px-3 py-1 mb-0" style="border-radius: 0; font-size: 0.8rem;">
-                Edit Foto
-                <input type="file" id="fotoInput" name="foto" class="d-none" accept="image/*">
-              </label>
-              @if($laptop->foto)
-                <button type="button" class="btn btn-danger px-3 py-1 mb-0" id="hapusFotoBtn" style="border-radius: 0; font-size: 0.8rem;">
-                  Hapus Foto
-                </button>
-                <input type="hidden" name="hapus_foto" id="hapusFotoInput" value="0">
-              @endif
-            </div>
+          <div class="foto-btn-container d-none d-flex justify-content-center gap-3 py-3"
+               style="position: absolute; bottom: 0; left: 0; right: 0; background: rgba(255,255,255,0.7); border-top: 1px solid #ddd; border-radius: 0 0 12px 12px;">
+            <label class="foto-btn foto-edit mb-0">
+              <i class="bx bx-upload me-1"></i> Edit Foto
+              <input type="file" id="fotoInput" name="foto" class="d-none" accept="image/*">
+            </label>
+
+            @if($laptop->foto)
+              <button type="button" class="foto-btn foto-hapus mb-0" id="hapusFotoBtn">
+                <i class="bx bx-trash me-1"></i> Hapus Foto
+              </button>
+              <input type="hidden" name="hapus_foto" id="hapusFotoInput" value="0">
+            @endif
+          </div>
           @endunless
         </div>
 
@@ -98,14 +112,14 @@
       </div>
 
       <div class="mt-4 d-flex gap-3">
-        <button type="submit" id="saveBtn" class="btn btn-primary px-4 py-2 d-none" style="border-radius: 0; font-size: 1rem;">Simpan Perubahan</button>
-        <a href="{{ route('laptop.index') }}" class="btn btn-secondary px-4 py-2" style="border-radius: 0; font-size: 1rem;">Kembali</a>
+        <button type="submit" id="saveBtn" class="btn btn-primary px-4 py-2 d-none" style="border-radius: 6px;">Simpan Perubahan</button>
+        <a href="{{ route('laptop.index') }}" class="btn btn-secondary px-4 py-2" style="border-radius: 6px;">Kembali</a>
       </div>
     </form>
   </div>
 </div>
 
-{{-- Fullscreen Image  --}}
+{{-- Fullscreen Image --}}
 <div id="imageModal" class="custom-modal" style="display: none;">
   <div class="custom-modal-overlay"></div>
   <div class="custom-modal-content">
@@ -117,180 +131,197 @@
 
 @section('page-script')
 <script>
-console.log('✅ Script loaded');
-
-// Pindahkan fungsi ke level global
-function showImageModal(src) {
-  console.log('📸 Showing modal with image:', src);
-  const modal = document.getElementById('imageModal');
-  const modalImage = document.getElementById('modalImage');
-  
-  modalImage.src = src;
-  modal.style.display = 'flex';
-  document.body.style.overflow = 'hidden'; 
-}
-
-function closeImageModal() {
-  console.log('❌ Closing modal');
-  const modal = document.getElementById('imageModal');
-  modal.style.display = 'none';
-  document.body.style.overflow = 'auto'; 
-}
-
 document.addEventListener('DOMContentLoaded', function() {
-  console.log('🚀 DOM Content Loaded');
-
-  const closeBtn = document.getElementById('closeModal');
-  const modalOverlay = document.querySelector('.custom-modal-overlay');
-  const modalImage = document.getElementById('modalImage');
-  
-  if (closeBtn) {
-    closeBtn.addEventListener('click', closeImageModal);
-  }
-  
-  if (modalOverlay) {
-    modalOverlay.addEventListener('click', closeImageModal);
-  }
-  
-  if (modalImage) {
-    modalImage.addEventListener('click', closeImageModal);
-  }
-  
-  document.addEventListener('keydown', function(e) {
-    if (e.key === 'Escape') {
-      closeImageModal();
-    }
-  });
-
-  const laptopImage = document.getElementById('laptopImage');
-  
-  console.log('🖼️ Laptop image found:', laptopImage);
-  console.log('📍 Image src:', laptopImage ? laptopImage.src : 'not found');
-  
-  if (laptopImage) {
-    const imgSrc = laptopImage.src;
-    
-    if (imgSrc && imgSrc.indexOf('nophoto.png') === -1) {
-      console.log('✅ Adding click listener to image');
-      
-      laptopImage.addEventListener('click', function(e) {
-        console.log('🖱️ Image clicked!');
-        e.preventDefault();
-        e.stopPropagation();
-        showImageModal(this.src);
-      });
-      
-      laptopImage.style.cursor = 'pointer';
-      laptopImage.title = 'Klik untuk melihat fullscreen';
-    } else {
-      console.log('⚠️ Image is nophoto.png, not adding click');
-    }
-  } else {
-    console.error('❌ Laptop image element not found!');
-  }
-
+  const toggleBtn = document.getElementById('toggleEditBtn');
+  const form = document.getElementById('editForm');
+  const fields = document.querySelectorAll('.editable-field');
+  const saveBtn = document.getElementById('saveBtn');
+  const fotoBtns = document.querySelector('.foto-btn-container');
   const hapusBtn = document.getElementById('hapusFotoBtn');
   const hapusInput = document.getElementById('hapusFotoInput');
   const hapusNotif = document.getElementById('hapusFotoNotif');
+  const originalSrc = '{{ $laptop->foto }}';
+  const laptopImage = document.getElementById('laptopImage');
+  const imageModal = document.getElementById('imageModal');
+  const modalImage = document.getElementById('modalImage');
+  const closeModal = document.getElementById('closeModal');
+  const overlay = document.querySelector('.custom-modal-overlay');
 
-  if(hapusBtn){
-    hapusBtn.addEventListener('click', function(event) {
-      event.stopPropagation();
-      event.preventDefault();
-      
-      const isDeleting = hapusInput.value === "1";
-      hapusInput.value = isDeleting ? "0" : "1";
-      this.innerText = isDeleting ? "Hapus Foto" : "Batal";
-      hapusNotif.classList.toggle('d-none', isDeleting);
-      
-      console.log('🗑️ Hapus foto clicked, value:', hapusInput.value);
+  let editMode = false;
+
+  // === TOGGLE EDIT MODE ===
+  if (toggleBtn) {
+    toggleBtn.addEventListener('click', function() {
+      editMode = !editMode;
+      const icon = this.querySelector('i');
+      const text = this.querySelector('span');
+
+      fields.forEach(f => f.readOnly = !editMode);
+      if (fotoBtns) fotoBtns.classList.toggle('d-none', !editMode);
+
+      if (editMode) {
+        text.textContent = "Batal Edit";
+        icon.className = "bx bx-x";
+        this.style.backgroundColor = "#495057";
+        saveBtn.classList.remove('d-none');
+      } else {
+        text.textContent = "Edit";
+        icon.className = "bx bx-edit-alt";
+        this.style.backgroundColor = "#6c757d";
+        saveBtn.classList.add('d-none');
+        form.reset();
+
+        // Reset foto ke aslinya
+        if (laptopImage && originalSrc) laptopImage.src = originalSrc;
+        if (hapusInput) hapusInput.value = "0";
+        if (hapusNotif) hapusNotif.classList.add('d-none');
+      }
     });
   }
 
+  // === HAPUS FOTO ===
+  if (hapusBtn) {
+    hapusBtn.addEventListener('click', function(event) {
+      event.preventDefault();
+      const isDeleting = hapusInput.value === "1";
+      hapusInput.value = isDeleting ? "0" : "1";
+      this.innerHTML = isDeleting ? '<i class="bx bx-trash me-1"></i> Hapus Foto' : '<i class="bx bx-x me-1"></i> Batal';
+      hapusNotif.classList.toggle('d-none', isDeleting);
+    });
+  }
+
+  // === PREVIEW FOTO BARU ===
   const fotoInput = document.getElementById('fotoInput');
-  if(fotoInput){
+  if (fotoInput) {
     fotoInput.addEventListener('change', function(e) {
       const file = e.target.files[0];
-      if(file){
-        console.log('📁 File selected:', file.name);
-        
+      if (file) {
         const reader = new FileReader();
-        reader.onload = function(event){
-          const cardImg = document.getElementById('laptopImage');
-          if (cardImg) {
-            cardImg.src = event.target.result;
-            cardImg.style.cursor = 'pointer';
-            
-            const newImg = cardImg.cloneNode(true);
-            cardImg.parentNode.replaceChild(newImg, cardImg);
-            
-            newImg.addEventListener('click', function(e) {
-              e.preventDefault();
-              e.stopPropagation();
-              showImageModal(event.target.result);
-            });
-            
-            console.log('✅ Image preview updated');
-          }
+        reader.onload = function(event) {
+          laptopImage.src = event.target.result;
+          laptopImage.style.cursor = 'pointer';
         }
         reader.readAsDataURL(file);
       }
     });
   }
 
-  const toggleBtn = document.getElementById('toggleEditBtn');
-  if(toggleBtn){
-    const form = document.getElementById('editForm');
-    const fields = document.querySelectorAll('.editable-field');
-    const saveBtn = document.getElementById('saveBtn');
-    const fotoBtns = document.querySelector('.foto-btn-container');
-
-    let editMode = false;
-
-    toggleBtn.addEventListener('click', function() {
-      editMode = !editMode;
-      console.log('✏️ Edit mode:', editMode);
-
-      fields.forEach(f => f.readOnly = !editMode);
-
-      if(fotoBtns){
-        fotoBtns.classList.toggle('d-none', !editMode);
+  // === FULLSCREEN IMAGE MODAL ===
+  if (laptopImage && imageModal && modalImage) {
+    laptopImage.addEventListener('click', function() {
+      const src = this.src;
+      if (src && src !== "{{ asset('images/nophoto.png') }}") {
+        modalImage.src = src;
+        imageModal.style.display = 'flex';
       }
+    });
 
-      if(editMode){
-        this.innerText = "Batal Edit";
-        this.classList.replace('btn-warning', 'btn-danger');
-        saveBtn.classList.remove('d-none');
-      } else {
-        this.innerText = "Edit";
-        this.classList.replace('btn-danger', 'btn-warning');
-        saveBtn.classList.add('d-none');
-        form.reset();
-        
-        const originalSrc = '{{ $laptop->foto }}';
-        const cardImg = document.getElementById('laptopImage');
-        if (cardImg && originalSrc) {
-          cardImg.src = originalSrc;
-        }
-        
-        if (hapusInput) hapusInput.value = "0";
-        if (hapusBtn) hapusBtn.innerText = "Hapus Foto";
-        if (hapusNotif) hapusNotif.classList.add('d-none');
-      }
+    closeModal.addEventListener('click', () => imageModal.style.display = 'none');
+    overlay.addEventListener('click', () => imageModal.style.display = 'none');
+
+    document.addEventListener('keydown', e => {
+      if (e.key === 'Escape') imageModal.style.display = 'none';
     });
   }
 });
 </script>
 
-{{-- Dark Mode & Custom Styles --}}
 <style>
-/* Light Theme Base */
-[data-theme="light"] .container .p-4 {
-  background-color: rgba(255,255,255,0.85) !important;
-  color: #000 !important;
+/* Tombol Edit Mode */
+#toggleEditBtn:hover {
+  filter: brightness(1.1);
+  transform: translateY(-1px);
+  box-shadow: 0 2px 6px rgba(0,0,0,0.15);
 }
 
-/* Dark Theme */
+/* Tombol Edit & Hapus Foto */
+.foto-btn {
+  font-size: 0.85rem;
+  padding: 6px 16px;
+  border: none;
+  border-radius: 30px;
+  transition: all 0.25s ease;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.foto-edit {
+  background-color: #007bff;
+  color: white;
+}
+.foto-edit:hover {
+  background-color: #0056b3;
+}
+
+.foto-hapus {
+  background-color: #dc3545;
+  color: white;
+}
+.foto-hapus:hover {
+  background-color: #a71d2a;
+}
+
+/* Modal background & blur */
+.custom-modal {
+  display: none;
+  position: fixed;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  z-index: 9999;
+  align-items: center;
+  justify-content: center;
+}
+
+.custom-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(15, 15, 15, 0.4);
+  backdrop-filter: blur(8px);
+}
+
+.custom-modal-content {
+  position: relative;
+  border-radius: 8px;
+  overflow: visible;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6);
+}
+
+#modalImage {
+  display: block;
+  max-width: 90vw;
+  max-height: 90vh;
+  width: auto;
+  height: auto;
+  border-radius: 8px;
+  object-fit: contain;
+}
+
+/* Tombol close */
+#closeModal {
+  position: fixed;
+  top: 16px;
+  right: 16px;
+  background: rgba(255, 255, 255, 0.25);
+  border: none;
+  color: #fff;
+  font-size: 1.8rem;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  cursor: pointer;
+  z-index: 10000;
+  transition: background 0.2s ease;
+}
+
+#closeModal:hover {
+  background: rgba(255, 255, 255, 0.45);
+}
+
 [data-theme="dark"] .container .p-4 {
   background-color: rgba(30, 30, 47, 0.9) !important;
   color: #fff !important;
@@ -320,126 +351,8 @@ document.addEventListener('DOMContentLoaded', function() {
   border: 1px solid #444 !important;
 }
 
-#laptopImage[style*="cursor: pointer"] {
-  transition: all 0.2s ease;
-}
-
-#laptopImage[style*="cursor: pointer"]:hover {
-  opacity: 0.85;
-  transform: scale(1.01);
-}
-
-[data-theme="dark"] .container .btn-warning {
-  background-color: #ffb84d !important;
-  border-color: #ffb84d !important;
-  color: #000 !important;
-}
-
-[data-theme="dark"] .container .btn-danger {
-  background-color: #ff5c5c !important;
-  border-color: #ff5c5c !important;
-  color: #fff !important;
-}
-
-[data-theme="dark"] .container .btn-primary {
-  background-color: #6c63ff !important;
-  border-color: #6c63ff !important;
-  color: #fff !important;
-}
-
-[data-theme="dark"] .container .btn-secondary {
-  background-color: #3b3b52 !important;
-  border-color: #3b3b52 !important;
-  color: #fff !important;
-}
-
 [data-theme="dark"] .text-muted {
   color: #aaa !important;
-}
-
-.custom-modal {
-  display: none;
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  z-index: 9999;
-  align-items: center;
-  justify-content: center;
-}
-
-.custom-modal-overlay {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background-color: rgba(0, 0, 0, 0.8);
-  backdrop-filter: blur(4px);
-  cursor: zoom-out;
-}
-
-.custom-modal-content {
-  position: relative;
-  max-width: 95vw;
-  max-height: 95vh;
-  z-index: 10000;
-}
-
-.custom-modal-content img {
-  max-width: 100%;
-  max-height: 95vh;
-  object-fit: contain;
-  cursor: zoom-out;
-  animation: modalFadeIn 0.3s ease;
-}
-
-.custom-modal-close {
-  position: fixed;
-  top: 20px;
-  right: 20px;
-  background: rgba(255, 255, 255, 0.9);
-  border: none;
-  border-radius: 50%;
-  width: 50px;
-  height: 50px;
-  font-size: 30px;
-  line-height: 1;
-  cursor: pointer;
-  color: #000;
-  transition: all 0.2s ease;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 0;
-  z-index: 10001;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
-}
-
-.custom-modal-close:hover {
-  background: rgba(255, 255, 255, 1);
-  transform: rotate(90deg) scale(1.1);
-}
-
-[data-theme="dark"] .custom-modal-close {
-  background: rgba(40, 40, 40, 0.9);
-  color: #fff;
-}
-
-[data-theme="dark"] .custom-modal-close:hover {
-  background: rgba(60, 60, 60, 0.95);
-}
-
-@keyframes modalFadeIn {
-  from {
-    opacity: 0;
-    transform: scale(0.9);
-  }
-  to {
-    opacity: 1;
-    transform: scale(1);
-  }
-}
+}   
 </style>
 @endsection

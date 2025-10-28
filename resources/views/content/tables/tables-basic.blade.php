@@ -94,9 +94,8 @@
             <form action="{{ route('peminjaman.selesai', $p->id) }}" method="POST" class="selesai-form">
               @csrf
               @method('DELETE')
-              <button type="button" class="btn btn-sm text-white fw-bold" 
-                      style="background-color:#14a2ba;"
-                      onclick="openSelesaiModal(this, '{{ $p->nama }}', '{{ $p->laptop ? $p->laptop->merek.' '.$p->laptop->tipe : '-' }}', '{{ $p->tanggal_mulai }}')">
+              <button type="button" class="btn-table" 
+                onclick="openSelesaiModal(this, '{{ $p->nama }}', '{{ $p->laptop ? $p->laptop->merek.' '.$p->laptop->tipe : '-' }}', '{{ $p->tanggal_mulai }}')">
                 Selesai
               </button>
             </form>
@@ -121,14 +120,11 @@
   </div>
 </div>
 
-
 <script>
   let currentForm = null;
 
   function openSelesaiModal(button, nama, laptop, tanggal) {
     currentForm = button.closest('form');
-    console.log('Form found:', currentForm); // Debug
-    console.log('Form action:', currentForm.action); // Debug
     document.getElementById('modalNama').innerText = nama;
     document.getElementById('modalLaptop').innerText = laptop;
     document.getElementById('modalTanggal').innerText = tanggal;
@@ -142,39 +138,44 @@
 
   function confirmSelesai() {
     if (currentForm) {
-      console.log('Submitting form...'); 
-      const formToSubmit = currentForm; 
-      closeSelesaiModal(); 
-      formToSubmit.submit(); 
-    } else {
-      console.error('No form found!'); 
+      const formToSubmit = currentForm;
+      closeSelesaiModal();
+      formToSubmit.submit();
     }
   }
 
   function showToast(message, bgColor = "#10b981") {
     const toast = document.getElementById('toastNotification');
     const toastMsg = document.getElementById('toastMessage');
-    
     toast.style.background = `linear-gradient(135deg, ${bgColor} 0%, ${bgColor}dd 100%)`;
     toastMsg.innerText = message;
     toast.style.display = 'block';
-    
-    setTimeout(() => {
-      toast.style.transform = 'translateX(0)';
-    }, 10);
-    
+    setTimeout(() => toast.style.transform = 'translateX(0)', 10);
     setTimeout(() => {
       toast.style.transform = 'translateX(400px)';
-      setTimeout(() => {
-        toast.style.display = 'none';
-      }, 300);
+      setTimeout(() => toast.style.display = 'none', 300);
     }, 3000);
   }
 
   document.getElementById('selesaiModal').addEventListener('click', function(e) {
-    if (e.target === this) {
-      closeSelesaiModal();
-    }
+    if (e.target === this) closeSelesaiModal();
   });
 </script>
+
+<style>
+.btn-table {
+    background-color: #0d9488;
+    color: #fff;
+    border: none;
+    border-radius: 6px;
+    padding: 6px 14px;
+    font-size: 13px;
+    font-weight: 600;
+    transition: all 0.25s ease;
+  }
+  .btn-table:hover {
+    background-color: #0b7d73;
+    transform: translateY(-1px);
+  }
+</style>
 @endsection

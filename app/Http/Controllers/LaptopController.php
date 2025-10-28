@@ -104,13 +104,13 @@ class LaptopController extends Controller
             ],
         ]);
 
-        if ($request->has('hapus_foto') && $laptop->public_id) {
+        if ($request->has('hapus_foto') && $request->hapus_foto == '1' && $laptop->public_id) {
             $cloudinary->uploadApi()->destroy($laptop->public_id);
             $data['foto'] = null;
             $data['public_id'] = null;
         }
 
-        if ($request->hasFile('foto')) {
+        elseif ($request->hasFile('foto')) {
             if ($laptop->public_id) {
                 $cloudinary->uploadApi()->destroy($laptop->public_id);
             }
@@ -124,9 +124,14 @@ class LaptopController extends Controller
             $data['public_id'] = $uploaded['public_id'];
         }
 
+        else {
+            $data['foto'] = $laptop->foto;
+            $data['public_id'] = $laptop->public_id;
+        }
+
         $laptop->update($data);
 
-        return redirect()->route('laptop.index')->with('success', 'Laptop berhasil diperbarui!');
+        return back()->with('success', 'Data laptop berhasil diperbarui.');
     }
 
     public function archive(Request $request, $id)

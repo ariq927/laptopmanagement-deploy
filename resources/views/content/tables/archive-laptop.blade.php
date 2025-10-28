@@ -10,6 +10,54 @@
     $borderColor = $isDarkMode ? 'rgba(18,93,114,0.5)' : 'rgba(20,162,186,0.3)';
 @endphp
 
+<style>
+  .btn-modern {
+    border: none;
+    border-radius: 8px;
+    font-weight: 600;
+    padding: 8px 18px;
+    transition: all 0.25s ease;
+  }
+  .btn-cancel {
+    background-color: rgba(255,255,255,0.85);
+    color: #333;
+  }
+  .btn-cancel:hover {
+    background-color: rgba(255,255,255,0.95);
+    transform: translateY(-1px);
+  }
+  .btn-restore {
+    background-color: #0d9488;
+    color: #fff;
+  }
+  .btn-restore:hover {
+    background-color: #0b7d73;
+    transform: translateY(-1px);
+  }
+  .btn-search {
+    background-color: rgba(255,255,255,0.85);
+    color: #333;
+  }
+  .btn-search:hover {
+    background-color: rgba(255,255,255,0.95);
+    transform: translateY(-1px);
+  }
+  .btn-table {
+    background-color: #0d9488;
+    color: #fff;
+    border: none;
+    border-radius: 6px;
+    padding: 6px 14px;
+    font-size: 13px;
+    font-weight: 600;
+    transition: all 0.25s ease;
+  }
+  .btn-table:hover {
+    background-color: #0b7d73;
+    transform: translateY(-1px);
+  }
+</style>
+
 <div id="restoreModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.7); z-index:9999; backdrop-filter:blur(5px);">
   <div style="position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); background:linear-gradient(135deg, #14a2ba 0%, #0d7a8e 100%); padding:30px; border-radius:15px; box-shadow:0 10px 40px rgba(0,0,0,0.5); min-width:450px; border:2px solid rgba(255,255,255,0.2);">
     <h4 style="color:#fff; margin-bottom:20px; text-align:center; font-weight:bold; text-shadow:2px 2px 4px rgba(0,0,0,0.3);">Kembalikan Laptop</h4>
@@ -20,10 +68,10 @@
         <strong>Keterangan:</strong> <span id="modalKeterangan"></span>
       </p>
     </div>
-    <p style="color:#fff; margin-bottom:20px; opacity:0.9; text-align:center;">Apakah Anda yakin ingin mengembalikan laptop ini dari arsip?</p>
+    <p style="color:#fff; margin-bottom:20px; opacity:0.9; text-align:center;">Apakah kamu yakin ingin mengembalikan laptop ini dari arsip?</p>
     <div style="display:flex; gap:10px; justify-content:center;">
-      <button onclick="closeRestoreModal()" class="btn btn-light" style="font-weight:bold; padding:8px 20px;">Batal</button>
-      <button onclick="confirmRestore()" class="btn btn-success" style="font-weight:bold; padding:8px 20px;">Ya, Kembalikan</button>
+      <button onclick="closeRestoreModal()" class="btn-modern btn-cancel">Batal</button>
+      <button onclick="confirmRestore()" class="btn-modern btn-restore">Ya, Kembalikan</button>
     </div>
   </div>
 </div>
@@ -62,7 +110,7 @@
                 @endforeach
             </select>
             <input type="text" name="search" class="form-control" placeholder="Cari Laptop.." value="{{ request('search') }}" style="background-color: rgba(255,255,255,0.9); border:1px solid {{ $headerBgColor }}; color:#000;">
-            <button type="submit" class="btn btn-light">Cari</button>
+            <button type="submit" class="btn-modern btn-search">Cari</button>
         </form>
     </div>
 
@@ -91,7 +139,7 @@
                             <form action="{{ route('laptop.restore', $laptop->id) }}" method="POST" class="restore-form">
                                 @csrf
                                 @method('PATCH')
-                                <button type="button" class="btn btn-success btn-sm"
+                                <button type="button" class="btn-table"
                                     onclick="openRestoreModal(this, '{{ $laptop->kode }}', '{{ $laptop->merek }} {{ $laptop->tipe }}', '{{ $laptop->keterangan }}')">
                                     Kembalikan
                                 </button>
