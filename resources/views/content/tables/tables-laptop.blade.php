@@ -145,7 +145,7 @@
       } else if (laptop.status === 'dipinjam') {
         return `<button class="btn btn-secondary btn-sm" disabled>Dipinjam</button>`;
       } else if (laptop.status === 'diarsip') {
-        return `<button class="btn btn-success btn-sm" onclick="event.stopPropagation(); restoreLaptop(${laptop.id})">Kembalikan</button>`;
+        return `<button class="btn btn-secondary btn-sm" disabled>Diarsip</button>`;
       }
       return '';
     };
