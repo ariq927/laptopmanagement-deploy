@@ -53,5 +53,4 @@ php artisan migrate --seed
 php artisan serve
 ```
 
-## 📄 Lisensi
-Proyek ini dibuat untuk tujuan pembelajaran.
+
