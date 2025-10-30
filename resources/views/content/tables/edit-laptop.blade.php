@@ -8,7 +8,7 @@
     <h4 class="mb-4">Detail Laptop</h4>
 
     @php
-      $isReadOnly = ($laptop->status === 'dipinjam');
+      $isReadOnly = ($laptop->status === 'in use');
     @endphp
 
     @unless($isReadOnly)
@@ -66,13 +66,19 @@
       {{-- Status --}}
       <div class="mb-3">
         <label class="form-label fw-semibold">Status</label>
-        <input type="text" class="form-control" value="{{ ucfirst($laptop->status) }}" readonly>
+        {{-- Tampilan readonly --}}
+        <input type="text" id="statusText" class="form-control" value="{{ ucfirst($laptop->status) }}" readonly>
+        {{-- Dropdown edit --}}
+        <select name="status" id="statusSelect" class="form-select editable-field d-none">
+          <option value="in stock" {{ $laptop->status === 'in stock' ? 'selected' : '' }}>In Stock</option>
+          <option value="in use" {{ $laptop->status === 'in use' ? 'selected' : '' }}>In Use</option>
+          <option value="diarsip" {{ $laptop->status === 'diarsip' ? 'selected' : '' }}>Diarsip</option>
+        </select>
       </div>
 
       {{-- Foto Laptop --}}
       <div class="mb-3">
         <label class="form-label fw-semibold">Foto Laptop</label><br>
-
         <div class="card shadow-sm border-0 position-relative" 
              style="width: 400px; height: 400px; background-color: rgba(245,245,245,0.6); border-radius: 12px;">
 
@@ -130,6 +136,135 @@
 @endsection
 
 @section('page-script')
+<style>
+  /* === Fullscreen Image Modal === */
+  .custom-modal {
+    position: fixed !important;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    display: none;
+    justify-content: center;
+    align-items: center;
+    background: rgba(0, 0, 0, 0.85); 
+    backdrop-filter: blur(4px);
+    z-index: 9999 !important;
+  }
+
+  .custom-modal-content {
+    position: relative;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+
+  .custom-modal-content img {
+    max-width: 90vw;
+    max-height: 90vh;
+    border-radius: 12px;
+    box-shadow: 0 6px 30px rgba(0, 0, 0, 0.8);
+  }
+
+  .custom-modal-close {
+    position: fixed;
+    top: 20px;
+    right: 25px;
+    font-size: 2.5rem;
+    color: white;
+    background: rgba(0,0,0,0.4);
+    border: none;
+    border-radius: 50%;
+    width: 35px;
+    height: 35px;
+    line-height: 35px;
+    text-align: center;
+    cursor: pointer;
+    transition: background 0.2s ease;
+  }
+
+  .custom-modal-close:hover {
+    background: rgba(255,255,255,0.25);
+  }
+
+  [data-theme="dark"] .container .p-4 {
+  background-color: rgba(30, 30, 47, 0.9) !important;
+  color: #fff !important;
+}
+
+[data-theme="dark"] .container .form-label {
+  color: #fff !important;
+}
+
+[data-theme="dark"] .container .form-control,
+[data-theme="dark"] .container textarea {
+  background-color: rgba(50, 50, 70, 0.8) !important;
+  color: #fff !important;
+  border-color: #555 !important;
+}
+
+[data-theme="dark"] .container .form-control:focus,
+[data-theme="dark"] .container textarea:focus {
+  background-color: rgba(60, 60, 80, 0.9) !important;
+  color: #fff !important;
+  border-color: #777 !important;
+  box-shadow: none !important;
+}
+
+.foto-btn-container {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    display: flex;
+    justify-content: center;
+    gap: 12px;
+    padding: 10px 0;
+    background: rgba(255, 255, 255, 0.85);
+    border-top: 1px solid #ddd;
+    border-radius: 0 0 12px 12px;
+    backdrop-filter: blur(6px);
+    transition: all 0.25s ease-in-out;
+  }
+
+  .foto-btn {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-weight: 600;
+    font-size: 0.9rem;
+    border: none;
+    border-radius: 30px;
+    padding: 8px 18px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+
+  .foto-edit {
+    background-color: #198754;
+    color: #fff;
+  }
+  .foto-edit:hover {
+    background-color: #157347;
+    transform: translateY(-2px);
+  }
+
+  .foto-hapus {
+    background-color: #dc3545;
+    color: #fff;
+  }
+  .foto-hapus:hover {
+    background-color: #bb2d3b;
+    transform: translateY(-2px);
+  }
+
+  /* Dark mode fix */
+  [data-theme="dark"] .foto-btn-container {
+    background: rgba(40, 40, 60, 0.9);
+    border-top: 1px solid #444;
+  }
+</style>
+
 <script>
 document.addEventListener('DOMContentLoaded', function() {
   const toggleBtn = document.getElementById('toggleEditBtn');
@@ -142,10 +277,11 @@ document.addEventListener('DOMContentLoaded', function() {
   const hapusNotif = document.getElementById('hapusFotoNotif');
   const originalSrc = '{{ $laptop->foto }}';
   const laptopImage = document.getElementById('laptopImage');
+  const statusText = document.getElementById('statusText');
+  const statusSelect = document.getElementById('statusSelect');
   const imageModal = document.getElementById('imageModal');
   const modalImage = document.getElementById('modalImage');
   const closeModal = document.getElementById('closeModal');
-  const overlay = document.querySelector('.custom-modal-overlay');
 
   let editMode = false;
 
@@ -159,6 +295,9 @@ document.addEventListener('DOMContentLoaded', function() {
       fields.forEach(f => f.readOnly = !editMode);
       if (fotoBtns) fotoBtns.classList.toggle('d-none', !editMode);
 
+      statusText.classList.toggle('d-none', editMode);
+      statusSelect.classList.toggle('d-none', !editMode);
+
       if (editMode) {
         text.textContent = "Batal Edit";
         icon.className = "bx bx-x";
@@ -170,8 +309,9 @@ document.addEventListener('DOMContentLoaded', function() {
         this.style.backgroundColor = "#6c757d";
         saveBtn.classList.add('d-none');
         form.reset();
+        statusSelect.value = "{{ $laptop->status }}";
+        statusText.value = "{{ ucfirst($laptop->status) }}";
 
-        // Reset foto ke aslinya
         if (laptopImage && originalSrc) laptopImage.src = originalSrc;
         if (hapusInput) hapusInput.value = "0";
         if (hapusNotif) hapusNotif.classList.add('d-none');
@@ -185,7 +325,9 @@ document.addEventListener('DOMContentLoaded', function() {
       event.preventDefault();
       const isDeleting = hapusInput.value === "1";
       hapusInput.value = isDeleting ? "0" : "1";
-      this.innerHTML = isDeleting ? '<i class="bx bx-trash me-1"></i> Hapus Foto' : '<i class="bx bx-x me-1"></i> Batal';
+      this.innerHTML = isDeleting
+        ? '<i class="bx bx-trash me-1"></i> Hapus Foto'
+        : '<i class="bx bx-x me-1"></i> Batal';
       hapusNotif.classList.toggle('d-none', isDeleting);
     });
   }
@@ -217,142 +359,13 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     closeModal.addEventListener('click', () => imageModal.style.display = 'none');
-    overlay.addEventListener('click', () => imageModal.style.display = 'none');
-
+    imageModal.addEventListener('click', (e) => {
+      if (e.target === imageModal) imageModal.style.display = 'none';
+    });
     document.addEventListener('keydown', e => {
       if (e.key === 'Escape') imageModal.style.display = 'none';
     });
   }
 });
 </script>
-
-<style>
-/* Tombol Edit Mode */
-#toggleEditBtn:hover {
-  filter: brightness(1.1);
-  transform: translateY(-1px);
-  box-shadow: 0 2px 6px rgba(0,0,0,0.15);
-}
-
-/* Tombol Edit & Hapus Foto */
-.foto-btn {
-  font-size: 0.85rem;
-  padding: 6px 16px;
-  border: none;
-  border-radius: 30px;
-  transition: all 0.25s ease;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.foto-edit {
-  background-color: #007bff;
-  color: white;
-}
-.foto-edit:hover {
-  background-color: #0056b3;
-}
-
-.foto-hapus {
-  background-color: #dc3545;
-  color: white;
-}
-.foto-hapus:hover {
-  background-color: #a71d2a;
-}
-
-/* Modal background & blur */
-.custom-modal {
-  display: none;
-  position: fixed;
-  top: 0; left: 0;
-  width: 100%; height: 100%;
-  z-index: 9999;
-  align-items: center;
-  justify-content: center;
-}
-
-.custom-modal-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(15, 15, 15, 0.4);
-  backdrop-filter: blur(8px);
-}
-
-.custom-modal-content {
-  position: relative;
-  border-radius: 8px;
-  overflow: visible;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6);
-}
-
-#modalImage {
-  display: block;
-  max-width: 90vw;
-  max-height: 90vh;
-  width: auto;
-  height: auto;
-  border-radius: 8px;
-  object-fit: contain;
-}
-
-/* Tombol close */
-#closeModal {
-  position: fixed;
-  top: 16px;
-  right: 16px;
-  background: rgba(255, 255, 255, 0.25);
-  border: none;
-  color: #fff;
-  font-size: 1.8rem;
-  width: 36px;
-  height: 36px;
-  border-radius: 50%;
-  cursor: pointer;
-  z-index: 10000;
-  transition: background 0.2s ease;
-}
-
-#closeModal:hover {
-  background: rgba(255, 255, 255, 0.45);
-}
-
-[data-theme="dark"] .container .p-4 {
-  background-color: rgba(30, 30, 47, 0.9) !important;
-  color: #fff !important;
-}
-
-[data-theme="dark"] .container .form-label {
-  color: #fff !important;
-}
-
-[data-theme="dark"] .container .form-control,
-[data-theme="dark"] .container textarea {
-  background-color: rgba(50, 50, 70, 0.8) !important;
-  color: #fff !important;
-  border-color: #555 !important;
-}
-
-[data-theme="dark"] .container .form-control:focus,
-[data-theme="dark"] .container textarea:focus {
-  background-color: rgba(60, 60, 80, 0.9) !important;
-  color: #fff !important;
-  border-color: #777 !important;
-  box-shadow: none !important;
-}
-
-[data-theme="dark"] .container .card {
-  background-color: rgba(40, 40, 60, 0.9) !important;
-  border: 1px solid #444 !important;
-}
-
-[data-theme="dark"] .text-muted {
-  color: #aaa !important;
-}   
-</style>
 @endsection

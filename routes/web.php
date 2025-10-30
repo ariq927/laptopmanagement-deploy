@@ -190,6 +190,11 @@ Route::put('/laptop/{laptop}', [LaptopController::class, 'update'])->name('lapto
 Route::delete('/laptop/{id}', [AdminController::class, 'destroyLaptop'])->name('laptop.destroy');
 Route::get('/tables/laptop', [AdminController::class, 'index'])->middleware('auth')->name('laptop.index');
 Route::get('/peminjaman/create/{id}', [PeminjamanNewController::class, 'create'])->name('peminjaman.create');
+Route::get('/peminjaman/{id}', [PeminjamanNewController::class, 'showDetail'])->name('peminjaman.detail');
+Route::put('/peminjaman/update-status/{id}', [PeminjamanNewController::class, 'updateStatus'])->name('peminjaman.updateStatus');
+
+
+
 
 
 // ========================

@@ -149,7 +149,7 @@
         transition:all 0.25s ease;
       `;
 
-      if (laptop.status === 'tersedia') {
+      if (laptop.status === 'in stock') {
         return `
           <div style="display:flex; gap:8px;">
             <a href="/peminjaman/create/${laptop.id}" 
@@ -157,7 +157,7 @@
               style="${baseBtnStyle} background:#e0e7ff; color:#1e3a8a; border:1px solid #c7d2fe;"
               onmouseover="this.style.background='#c7d2fe';"
               onmouseout="this.style.background='#e0e7ff';">
-              Pinjam
+              Sewa
             </a>
             <a href="/laptop/${laptop.id}/edit" 
               class="btn"
@@ -176,10 +176,10 @@
             </button>
           </div>
         `;
-      } else if (laptop.status === 'dipinjam') {
+      } else if (laptop.status === 'in use') {
         return `<button class="btn" disabled
           style="${baseBtnStyle} background:#f1f5f9; color:#475569; border:1px solid #e2e8f0;">
-          Dipinjam
+          In Use
         </button>`;
       } else if (laptop.status === 'diarsip') {
         return `<button class="btn" disabled

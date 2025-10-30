@@ -1,3 +1,11 @@
+<!-- Slider Tab for Mobile -->
+<div id="mobile-slider-tab" style="display: none; position: fixed; top: 50%; left: 0; transform: translateY(-50%); z-index: 999999; pointer-events: auto; width: 45px; height: 100px; background: #14a2ba; border-radius: 0 20px 20px 0; cursor: pointer; box-shadow: 3px 0 15px rgba(0,0,0,0.4); align-items: center; justify-content: center;">
+  <i class="bx bx-chevron-right" style="color: white; font-size: 28px; pointer-events: none;"></i>
+</div>
+
+<!-- Overlay for mobile -->
+<div id="mobile-overlay" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.6); z-index: 999998; opacity: 0; transition: opacity 0.3s;"></div>
+
 <aside id="layout-menu" class="layout-menu menu-vertical menu bg-menu-theme">
   <!-- Logo / App Brand -->
   <div class="app-brand demo">
@@ -43,7 +51,7 @@
     <li class="menu-item {{ request()->is('tables/basic') ? 'active' : '' }}">
       <a href="{{ url('tables/basic') }}" class="menu-link">
         <i class="bx bx-user"></i>
-        <div>Daftar Peminjam</div>
+        <div>Daftar Pengguna</div>
       </a>
     </li>
 
@@ -172,4 +180,240 @@
   body.dark-mode .app-brand-logo {
     filter: brightness(0.95);
   }
+
+  /* Slider styles */
+  #mobile-slider-tab {
+    transition: left 0.3s ease !important;
+  }
+
+  #mobile-slider-tab:hover {
+    width: 50px !important;
+    background: #1299b0 !important;
+  }
+
+  #mobile-slider-tab:active {
+    transform: translateY(-50%) scale(0.95) !important;
+  }
+
+  #mobile-slider-tab i {
+    transition: transform 0.3s ease !important;
+  }
+
+  [data-theme="dark"] #mobile-slider-tab,
+  body.dark-mode #mobile-slider-tab {
+    background: #2b2b3c !important;
+  }
+
+  [data-theme="dark"] #mobile-slider-tab:hover,
+  body.dark-mode #mobile-slider-tab:hover {
+    background: #3a3a4f !important;
+  }
+
+  /* Desktop */
+  @media (min-width: 1200px) {
+    #layout-menu {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 260px;
+      height: 100vh;
+    }
+
+    .layout-page {
+      margin-left: 0px;
+    }
+  }
 </style>
+
+<script>
+// ==========================================
+// KILL TEMPLATE SCRIPTS FIRST
+// ==========================================
+(function() {
+  'use strict';
+  
+  console.clear();
+  console.log('🔥 KILLING TEMPLATE SCRIPTS...');
+  
+  // Block Menu class
+  window.Menu = function() {};
+  window.Menu.prototype.init = function() { return false; };
+  window.Menu.prototype.destroy = function() { return false; };
+  window.Menu.prototype.manageScroll = function() { return false; };
+  
+  // Remove all event listeners on window resize
+  const oldAddEventListener = window.addEventListener;
+  window.addEventListener = function(type, listener, options) {
+    if (type === 'resize' && listener.toString().includes('manageScroll')) {
+      console.log('❌ Blocked template resize listener');
+      return;
+    }
+    return oldAddEventListener.call(this, type, listener, options);
+  };
+  
+  console.log('✅ Template scripts blocked!');
+})();
+
+// ==========================================
+// SIMPLE SLIDER - PURE VANILLA JS
+// ==========================================
+(function() {
+  'use strict';
+  
+  console.log('🚀 Initializing Simple Slider...');
+  
+  let slider, sidebar, overlay, icon;
+  let isOpen = false;
+  
+  function init() {
+    slider = document.getElementById('mobile-slider-tab');
+    sidebar = document.getElementById('layout-menu');
+    overlay = document.getElementById('mobile-overlay');
+    icon = slider ? slider.querySelector('i') : null;
+    
+    if (!slider || !sidebar || !overlay) {
+      setTimeout(init, 50);
+      return;
+    }
+    
+    console.log('✅ Elements loaded');
+    console.log('Sidebar element:', sidebar);
+    console.log('Sidebar initial left:', window.getComputedStyle(sidebar).left);
+    
+    // Remove all template classes/attributes
+    sidebar.removeAttribute('data-menu');
+    sidebar.removeAttribute('data-scroll');
+    sidebar.className = 'layout-menu menu-vertical menu bg-menu-theme';
+    
+    setupMobile();
+    attachEvents();
+    
+    console.log('✅ Slider ready! Try clicking the blue/purple tab on the left.');
+  }
+  
+  function setupMobile() {
+    if (window.innerWidth < 1200) {
+      // Slider
+      slider.setAttribute('style', 'display: flex !important; position: fixed !important; top: 50% !important; left: 0 !important; transform: translateY(-50%) !important; z-index: 9999999 !important; pointer-events: auto !important; width: 45px !important; height: 100px !important; background: #14a2ba !important; border-radius: 0 20px 20px 0 !important; cursor: pointer !important; box-shadow: 3px 0 15px rgba(0,0,0,0.4) !important; align-items: center !important; justify-content: center !important;');
+      
+      // Sidebar
+      sidebar.setAttribute('style', 'position: fixed !important; top: 0 !important; left: -280px !important; width: 260px !important; height: 100vh !important; z-index: 9999999 !important; transition: left 0.3s ease !important; overflow-y: auto !important; display: block !important; visibility: visible !important; transform: translateX(0) !important;');
+      
+      console.log('📱 Mobile setup done');
+      console.log('Sidebar position:', window.getComputedStyle(sidebar).position);
+      console.log('Sidebar left:', window.getComputedStyle(sidebar).left);
+      console.log('Sidebar z-index:', window.getComputedStyle(sidebar).zIndex);
+    } else {
+      slider.style.display = 'none';
+      sidebar.setAttribute('style', 'position: fixed !important; top: 0 !important; left: 0 !important; width: 260px !important; height: 100vh !important;');
+    }
+  }
+  
+  function open() {
+    console.log('🟢 OPENING');
+    
+    sidebar.setAttribute('style', 'position: fixed !important; top: 0 !important; left: 0px !important; width: 260px !important; height: 100vh !important; z-index: 9999999 !important; transition: left 0.3s ease !important; overflow-y: auto !important; display: block !important; visibility: visible !important; transform: translateX(0) !important;');
+    
+    // Move slider
+    slider.setAttribute('style', slider.getAttribute('style').replace('left: 0', 'left: 260px'));
+    
+    // Show overlay
+    overlay.style.display = 'block';
+    setTimeout(() => overlay.style.opacity = '1', 10);
+    
+    // Rotate icon
+    if (icon) icon.style.transform = 'rotate(180deg)';
+    
+    document.body.style.overflow = 'hidden';
+    isOpen = true;
+    
+    // Debug
+    setTimeout(() => {
+      console.log('After open - Sidebar left:', window.getComputedStyle(sidebar).left);
+      console.log('After open - Sidebar z-index:', window.getComputedStyle(sidebar).zIndex);
+      console.log('After open - Sidebar visibility:', window.getComputedStyle(sidebar).visibility);
+    }, 100);
+  }
+  
+  function close() {
+    console.log('🔴 CLOSING');
+    
+    // FORCE sidebar back to left: -280px
+    sidebar.setAttribute('style', 'position: fixed !important; top: 0 !important; left: -280px !important; width: 260px !important; height: 100vh !important; z-index: 9999999 !important; transition: left 0.3s ease !important; overflow-y: auto !important; display: block !important; visibility: visible !important; transform: translateX(0) !important;');
+    
+    // Move slider back
+    slider.setAttribute('style', slider.getAttribute('style').replace('left: 260px', 'left: 0'));
+    
+    // Hide overlay
+    overlay.style.opacity = '0';
+    setTimeout(() => overlay.style.display = 'none', 300);
+    
+    // Rotate icon back
+    if (icon) icon.style.transform = 'rotate(0deg)';
+    
+    document.body.style.overflow = '';
+    isOpen = false;
+  }
+  
+  function toggle() {
+    console.log('🔄 TOGGLE clicked!');
+    isOpen ? close() : open();
+  }
+  
+  function attachEvents() {
+    // Slider click - HARUS BERHASIL!
+    slider.onclick = function(e) {
+      e.preventDefault();
+      e.stopPropagation();
+      console.log('👆 SLIDER CLICKED!');
+      toggle();
+    };
+    
+    slider.ontouchstart = function(e) {
+      e.preventDefault();
+      console.log('📱 SLIDER TOUCHED!');
+      toggle();
+    };
+    
+    // Overlay
+    overlay.onclick = function() {
+      if (isOpen) close();
+    };
+    
+    // Inside chevron
+    const chevron = sidebar.querySelector('.layout-menu-toggle');
+    if (chevron) {
+      chevron.onclick = function(e) {
+        e.preventDefault();
+        if (isOpen) close();
+      };
+    }
+    
+    // Menu links
+    sidebar.querySelectorAll('.menu-link:not(.layout-menu-toggle)').forEach(link => {
+      link.onclick = function() {
+        if (window.innerWidth < 1200 && isOpen) {
+          setTimeout(close, 100);
+        }
+      };
+    });
+    
+    // Resize
+    window.addEventListener('resize', function() {
+      setupMobile();
+      if (window.innerWidth >= 1200 && isOpen) {
+        close();
+      }
+    });
+    
+    console.log('✅ Events attached!');
+  }
+  
+  // Start
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', init);
+  } else {
+    init();
+  }
+})();
+</script>

@@ -50,7 +50,7 @@
     <div class="card text-center">
       <div class="card-body">
         <h5 class="card-title mb-2 fw-bold">Laptop Tersedia</h5>
-        <h2 class="fw-bold text-success mb-0">{{ $tersedia }}</h2>
+        <h2 class="fw-bold text-success mb-0">{{ $inStock }}</h2>
       </div>
     </div>
   </div>

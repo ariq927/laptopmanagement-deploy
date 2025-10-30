@@ -20,7 +20,7 @@ class LaptopController extends Controller
                              ->orWhere('serial_number', 'like', "%{$search}%")
                              ->orWhere('status', 'like', "%{$search}%");
             })
-            ->paginate($perPage) 
+            ->paginate($perPage)
             ->withQueryString();
 
         return view('content.tables.tables-laptop', compact('laptops'));
@@ -37,23 +37,20 @@ class LaptopController extends Controller
             'merek' => 'required|string|max:255',
             'tipe' => 'required|string|max:255',
             'spesifikasi' => 'required|string',
-            'status' => 'required|in:tersedia,dipinjam,maintenance',
+            'status' => 'required|in:in stock,in use,diarsip',
             'foto' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
         ]);
 
-        $tahun = date('y'); 
+        $tahun = date('y');
         $prefix = 'LAP-' . $tahun . '-';
 
         $lastLaptop = LaptopData::where('kode', 'like', $prefix . '%')
             ->orderBy('kode', 'desc')
             ->first();
 
-        if ($lastLaptop) {
-            $lastNumber = (int) substr($lastLaptop->kode, -3);
-            $newNumber = str_pad($lastNumber + 1, 3, '0', STR_PAD_LEFT);
-        } else {
-            $newNumber = '001';
-        }
+        $newNumber = $lastLaptop
+            ? str_pad(((int) substr($lastLaptop->kode, -3)) + 1, 3, '0', STR_PAD_LEFT)
+            : '001';
 
         $kodeBaru = $prefix . $newNumber;
 
@@ -63,7 +60,7 @@ class LaptopController extends Controller
 
         if ($request->hasFile('foto')) {
             try {
-                $cloudinary = new \Cloudinary\Cloudinary([
+                $cloudinary = new Cloudinary([
                     'cloud' => [
                         'cloud_name' => config('cloudinary.cloud_name'),
                         'api_key'    => config('cloudinary.api_key'),
@@ -94,7 +91,7 @@ class LaptopController extends Controller
 
     public function update(Request $request, LaptopData $laptop)
     {
-        $data = $request->only(['merek', 'tipe', 'spesifikasi', 'serial_number']);
+        $data = $request->only(['merek', 'tipe', 'spesifikasi', 'serial_number', 'status']);
 
         $cloudinary = new Cloudinary([
             'cloud' => [
@@ -108,9 +105,7 @@ class LaptopController extends Controller
             $cloudinary->uploadApi()->destroy($laptop->public_id);
             $data['foto'] = null;
             $data['public_id'] = null;
-        }
-
-        elseif ($request->hasFile('foto')) {
+        } elseif ($request->hasFile('foto')) {
             if ($laptop->public_id) {
                 $cloudinary->uploadApi()->destroy($laptop->public_id);
             }
@@ -122,9 +117,7 @@ class LaptopController extends Controller
 
             $data['foto'] = $uploaded['secure_url'];
             $data['public_id'] = $uploaded['public_id'];
-        }
-
-        else {
+        } else {
             $data['foto'] = $laptop->foto;
             $data['public_id'] = $laptop->public_id;
         }
@@ -137,21 +130,20 @@ class LaptopController extends Controller
     public function archive(Request $request, $id)
     {
         $laptop = LaptopData::findOrFail($id);
-
         $data = $request->json()->all();
 
         $laptop->status = 'diarsip';
         $laptop->keterangan = $data['keterangan'] ?? null;
         $laptop->save();
 
-        return response()->json(['message' => 'Laptop berhasil diarsip']);
+        return response()->json(['message' => 'Laptop berhasil diarsipkan']);
     }
-
 
     public function restore($id)
     {
         $laptop = LaptopData::findOrFail($id);
-        $laptop->status = 'tersedia';
+        $laptop->status = 'in stock';
+        $laptop->keterangan = null;
         $laptop->save();
 
         return redirect()
@@ -159,20 +151,19 @@ class LaptopController extends Controller
             ->with('success', 'Laptop berhasil dikembalikan!');
     }
 
-
-   public function arsipLaptop(Request $request)
+    public function arsipLaptop(Request $request)
     {
         $search = $request->input('search');
         $perPage = $request->input('per_page', 10);
 
-        $query = LaptopData::where('status', 'diarsip'); 
+        $query = LaptopData::where('status', 'diarsip');
 
         if (!empty($search)) {
             $query->where(function ($q) use ($search) {
                 $q->where('kode', 'like', "%{$search}%")
-                ->orWhere('merek', 'like', "%{$search}%")
-                ->orWhere('tipe', 'like', "%{$search}%")
-                ->orWhere('spesifikasi', 'like', "%{$search}%");
+                  ->orWhere('merek', 'like', "%{$search}%")
+                  ->orWhere('tipe', 'like', "%{$search}%")
+                  ->orWhere('spesifikasi', 'like', "%{$search}%");
             });
         }
 
@@ -180,7 +171,6 @@ class LaptopController extends Controller
 
         return view('content.tables.archive-laptop', compact('laptops'));
     }
-
 
     // ================= API for React ================= //
 
@@ -193,9 +183,9 @@ class LaptopController extends Controller
             ->when($search, function ($query, $search) {
                 $query->where(function ($q) use ($search) {
                     $q->where('merek', 'like', "%{$search}%")
-                    ->orWhere('tipe', 'like', "%{$search}%")
-                    ->orWhere('spesifikasi', 'like', "%{$search}%")
-                    ->orWhere('serial_number', 'like', "%{$search}%");
+                      ->orWhere('tipe', 'like', "%{$search}%")
+                      ->orWhere('spesifikasi', 'like', "%{$search}%")
+                      ->orWhere('serial_number', 'like', "%{$search}%");
                 });
             })
             ->paginate($perPage)
@@ -207,19 +197,16 @@ class LaptopController extends Controller
     public function apiRestore($id)
     {
         $laptop = LaptopData::findOrFail($id);
-
-        $laptop->status = 'tersedia';
-        $laptop->keterangan = null; // <--- tambahkan baris ini
+        $laptop->status = 'in stock';
+        $laptop->keterangan = null;
         $laptop->save();
 
         return response()->json(['message' => 'Laptop berhasil dikembalikan']);
     }
 
-
     public function apiArchive(Request $request, $id)
     {
         $laptop = LaptopData::findOrFail($id);
-
         $keterangan = $request->input('keterangan') ?? $request->json('keterangan');
 
         $laptop->status = 'diarsip';
@@ -231,7 +218,6 @@ class LaptopController extends Controller
             'keterangan' => $keterangan
         ]);
     }
-
 
     public function getData(Request $request)
     {
@@ -249,5 +235,4 @@ class LaptopController extends Controller
 
         return response()->json($laptops);
     }
-
 }

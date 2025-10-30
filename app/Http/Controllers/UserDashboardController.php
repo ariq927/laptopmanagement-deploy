@@ -15,7 +15,8 @@ class UserDashboardController extends Controller
         $user = Auth::user();
 
         $totalLaptop = LaptopData::count();
-        $tersedia = LaptopData::where('status', 'tersedia')->count();
+        $inStock = LaptopData::where('status', 'in stock')->count();
+        $inUse = LaptopData::where('status', 'in use')->count();
         $diarsip = LaptopData::where('status', 'diarsip')->count();
 
         $pinjamanUser = collect();
@@ -52,11 +53,13 @@ class UserDashboardController extends Controller
             ];
         }
 
+        // Kirim ke view
         return view('content.dashboard.dashboards-analytics', [
             'user' => $userData,
             'isGuest' => $userData['name'] === 'Guest',
             'totalLaptop' => $totalLaptop,
-            'tersedia' => $tersedia,
+            'inStock' => $inStock,
+            'inUse' => $inUse,
             'diarsip' => $diarsip,
             'pinjamanUser' => $pinjamanUser,
             'laptopStats' => $laptopStats,
@@ -73,5 +76,4 @@ class UserDashboardController extends Controller
 
         return '-';
     }
-
 }

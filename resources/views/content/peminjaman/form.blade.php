@@ -54,52 +54,46 @@
 
 @push('scripts')
 <script>
-$(document).ready(function () {
-    const deptInput = document.getElementById('department');
-    const phoneInput = document.getElementById('nomor_telepon');
+$('#nama').select2({
+  placeholder: "Pilih Nama",
+  allowClear: true,
+  width: '100%',
+  ajax: {
+    url: '/pegawai',
+    dataType: 'json',
+    delay: 250,
+    data: function (params) {
+      return { q: params.term };
+    },
+    processResults: function (data) {
+      return {
+        results: data.data.map(emp => ({
+          id: emp.employeeCode || '-',
+          text: emp.employeeName || '-',
+          dept: emp.employeeCode || '-',
+          phone: emp.employeeEmail || '-' 
+        }))
+      };
+    }
+  },
+  templateResult: function (data) {
+    if (!data.id) return data.text;
+    return `${data.text} (${data.id})`;
+  },
+  templateSelection: function (data) {
+    return data.text;
+  }
+});
 
-    $('#nama').select2({
-        placeholder: "Pilih Nama",
-        allowClear: true,
-        width: '100%',
-        ajax: {
-            url: '/pegawai',
-            dataType: 'json',
-            delay: 250,
-            data: function (params) {
-                return { q: params.term };
-            },
-            processResults: function (data) {
-                return {
-                    results: data.data.map(emp => ({
-                        id: emp.employeeName, 
-                        text: emp.employeeName, 
-                        code: emp.employeeCode || '-', 
-                        dept: emp.employeeCode || '-', 
-                        phone: emp.employeeEmail || '-'
-                    }))
-                };
-            }
-        },
-        templateResult: function (data) {
-            if (!data.id) return data.text;
-            return `${data.text} - ${data.code}`; 
-        },
-        templateSelection: function (data) {
-            return data.text; 
-        }
-    });
+$('#nama').on('select2:select', function (e) {
+  const selected = e.params.data;
+  $('#department').val(selected.dept);
+  $('#nomor_telepon').val(selected.phone);
+});
 
-    $('#nama').on('select2:select', function (e) {
-        const selected = e.params.data;
-        deptInput.value = selected.dept;
-        phoneInput.value = selected.phone;
-    });
-
-    $('#nama').on('select2:clear', function () {
-        deptInput.value = '';
-        phoneInput.value = '';
-    });
+$('#nama').on('select2:clear', function () {
+  $('#department').val('');
+  $('#nomor_telepon').val('');
 });
 </script>
 @endpush
