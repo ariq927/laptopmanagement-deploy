@@ -106,24 +106,70 @@ $userEmail = $ldapUser['mail'] ?? Auth::user()->email ?? '';
 </nav>
 
 <!-- Theme Toggle & Dropdown Script -->
-<script>
-document.addEventListener('DOMContentLoaded', function () {
+<!-- Theme Toggle & Dropdown Script -->
+<script data-navigate-once="navbar-scripts">
+// ✅ Function untuk initialize navbar functionality
+function initializeNavbar() {
+  console.log('🔧 Initializing navbar...');
+  
   // ===== Theme Toggle =====
   const toggleBtn = document.getElementById('theme-toggle');
   const icon = document.getElementById('theme-icon');
   const html = document.documentElement;
 
-  const savedTheme = localStorage.getItem('theme') || 'light';
-  html.setAttribute('data-theme', savedTheme);
-  icon.className = savedTheme === 'dark' ? 'bx bx-moon fs-4' : 'bx bx-sun fs-4';
-
-  if (toggleBtn) {
-    toggleBtn.addEventListener('click', function () {
+  if (toggleBtn && icon) {
+    // Remove old listener dengan clone
+    const newToggleBtn = toggleBtn.cloneNode(true);
+    toggleBtn.parentNode.replaceChild(newToggleBtn, toggleBtn);
+    
+    const newIcon = document.getElementById('theme-icon');
+    
+    // Set initial theme
+    const savedTheme = localStorage.getItem('theme') || 'light';
+    html.setAttribute('data-theme', savedTheme);
+    
+    if (savedTheme === 'dark') {
+      html.classList.remove('light-style');
+      html.classList.add('dark-style');
+      html.style.background = '#121212';
+      html.style.colorScheme = 'dark';
+      newIcon.className = 'bx bx-moon fs-4';
+    } else {
+      html.classList.remove('dark-style');
+      html.classList.add('light-style');
+      html.style.background = '#ffffff';
+      html.style.colorScheme = 'light';
+      newIcon.className = 'bx bx-sun fs-4';
+    }
+    
+    // Add new listener
+    document.getElementById('theme-toggle').addEventListener('click', function(e) {
+      e.preventDefault();
+      e.stopPropagation();
+      
       const currentTheme = html.getAttribute('data-theme');
       const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+      
       html.setAttribute('data-theme', newTheme);
       localStorage.setItem('theme', newTheme);
-      icon.className = newTheme === 'dark' ? 'bx bx-moon fs-4' : 'bx bx-sun fs-4';
+      
+      const themeIcon = document.getElementById('theme-icon');
+      
+      if (newTheme === 'dark') {
+        html.classList.remove('light-style');
+        html.classList.add('dark-style');
+        html.style.background = '#121212';
+        html.style.colorScheme = 'dark';
+        themeIcon.className = 'bx bx-moon fs-4';
+      } else {
+        html.classList.remove('dark-style');
+        html.classList.add('light-style');
+        html.style.background = '#ffffff';
+        html.style.colorScheme = 'light';
+        themeIcon.className = 'bx bx-sun fs-4';
+      }
+      
+      console.log('🌓 Theme changed to:', newTheme);
     });
   }
 
@@ -132,36 +178,68 @@ document.addEventListener('DOMContentLoaded', function () {
   const dropdownMenu = document.querySelector('.dropdown-user .dropdown-menu');
 
   if (dropdownToggle && dropdownMenu) {
+    // Remove old listeners dengan clone
+    const newDropdownToggle = dropdownToggle.cloneNode(true);
+    dropdownToggle.parentNode.replaceChild(newDropdownToggle, dropdownToggle);
+    
+    const newDropdownMenu = document.querySelector('.dropdown-user .dropdown-menu');
+    
     // Toggle dropdown on click
-    dropdownToggle.addEventListener('click', function(e) {
+    document.querySelector('.dropdown-user .dropdown-toggle').addEventListener('click', function(e) {
       e.preventDefault();
       e.stopPropagation();
       
-      const isShown = dropdownMenu.classList.contains('show');
+      const menu = document.querySelector('.dropdown-user .dropdown-menu');
+      const isShown = menu.classList.contains('show');
       
       // Close all other dropdowns first
-      document.querySelectorAll('.dropdown-menu.show').forEach(menu => {
-        menu.classList.remove('show');
+      document.querySelectorAll('.dropdown-menu.show').forEach(m => {
+        m.classList.remove('show');
       });
       
       // Toggle current dropdown
       if (!isShown) {
-        dropdownMenu.classList.add('show');
+        menu.classList.add('show');
       }
+      
+      console.log('👤 Dropdown toggled:', !isShown);
     });
 
     // Close dropdown when clicking outside
-    document.addEventListener('click', function(e) {
-      if (!dropdownToggle.contains(e.target) && !dropdownMenu.contains(e.target)) {
-        dropdownMenu.classList.remove('show');
+    const closeDropdownOutside = function(e) {
+      const toggle = document.querySelector('.dropdown-user .dropdown-toggle');
+      const menu = document.querySelector('.dropdown-user .dropdown-menu');
+      
+      if (toggle && menu && !toggle.contains(e.target) && !menu.contains(e.target)) {
+        menu.classList.remove('show');
       }
-    });
+    };
+    
+    // Remove old listener
+    document.removeEventListener('click', closeDropdownOutside);
+    // Add new listener
+    document.addEventListener('click', closeDropdownOutside);
 
     // Prevent dropdown from closing when clicking inside
-    dropdownMenu.addEventListener('click', function(e) {
+    newDropdownMenu.addEventListener('click', function(e) {
       e.stopPropagation();
     });
   }
+  
+  console.log('✅ Navbar initialized!');
+}
+
+// ✅ Initialize on first load
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', initializeNavbar);
+} else {
+  initializeNavbar();
+}
+
+// ✅ Reinitialize after Livewire navigation
+document.addEventListener('livewire:navigated', function() {
+  console.log('🔄 Livewire navigated - reinitializing navbar...');
+  setTimeout(initializeNavbar, 50);
 });
 </script>
 

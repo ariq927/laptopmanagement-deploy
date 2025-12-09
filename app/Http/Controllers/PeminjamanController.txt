@@ -15,7 +15,6 @@ class PeminjamanController extends Controller
 
     public function store(Request $request)
     {
-        // Validasi
         $request->validate([
             'name'       => 'required|string|max:100',
             'department' => 'required|string|max:100',
@@ -25,7 +24,6 @@ class PeminjamanController extends Controller
             'note'       => 'nullable|string'
         ]);
 
-        // Simpan ke DB
         Peminjaman::create([
             'name'       => $request->name,
             'department' => $request->department,

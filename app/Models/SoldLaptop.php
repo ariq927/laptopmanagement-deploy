@@ -5,21 +5,22 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class DataPeminjam extends Model
+class SoldLaptop extends Model
 {
     use HasFactory;
 
-    protected $table = 'data_peminjam';
-
     protected $fillable = [
-        'user_id',
         'laptop_id',
-        'nama',
-        'department',
-        'nomor_telepon',
-        'tanggal_mulai',
-        'tanggal_selesai',
-        'status_peminjaman',
+        'buyer_name',
+        'buyer_id',
+        'sold_price',
+        'notes',
+        'sold_at',
+    ];
+
+    protected $casts = [
+        'sold_at' => 'datetime',
+        'sold_price' => 'decimal:2',
     ];
 
     public function laptop()

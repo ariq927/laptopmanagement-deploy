@@ -15,6 +15,7 @@
     "cloudinary/cloudinary_php": "^3.1",
     "laravel/framework": "^11.0",
     "laravel/tinker": "^2.9",
+    "livewire/livewire": "^3.7",
     "maatwebsite/excel": "3.1.56"
   },
   "require-dev": {

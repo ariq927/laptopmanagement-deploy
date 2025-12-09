@@ -56,6 +56,64 @@
     background-color: #0b7d73;
     transform: translateY(-1px);
   }
+
+  /* Loading overlay */
+  .table-loading {
+    position: relative;
+    opacity: 0.5;
+    pointer-events: none;
+  }
+
+  .loading-spinner {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 40px;
+    height: 40px;
+    border: 4px solid rgba(20,162,186,0.3);
+    border-top-color: #14a2ba;
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+    z-index: 1000;
+  }
+
+  @keyframes spin {
+    to { transform: translate(-50%, -50%) rotate(360deg); }
+  }
+
+  /* Responsive styles for mobile */
+  .header-controls-form {
+    display: flex;
+    gap: 10px;
+  }
+
+  @media (max-width: 768px) {
+    .card-header {
+      flex-direction: column !important;
+      gap: 15px;
+    }
+
+    .card-header h5 {
+      width: 100%;
+      text-align: center;
+    }
+
+    .header-controls-form {
+      flex-direction: column;
+      width: 100%;
+    }
+
+    .header-controls-form > * {
+      width: 100% !important;
+    }
+
+    .header-controls-form select,
+    .header-controls-form input,
+    .header-controls-form button {
+      width: 100% !important;
+    }
+  }
 </style>
 
 <div id="restoreModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.7); z-index:9999; backdrop-filter:blur(5px);">
@@ -70,8 +128,8 @@
     </div>
     <p style="color:#fff; margin-bottom:20px; opacity:0.9; text-align:center;">Apakah kamu yakin ingin mengembalikan laptop ini dari arsip?</p>
     <div style="display:flex; gap:10px; justify-content:center;">
-      <button onclick="closeRestoreModal()" class="btn-modern btn-cancel">Batal</button>
-      <button onclick="confirmRestore()" class="btn-modern btn-restore">Ya, Kembalikan</button>
+      <button id="btnCancelRestore" type="button" style="padding:10px 25px; border:none; border-radius:8px; font-weight:600; cursor:pointer; background:rgba(255,255,255,0.2); color:#fff; border:1px solid rgba(255,255,255,0.3);">Batal</button>
+      <button id="btnConfirmRestore" type="button" style="padding:10px 25px; border:none; border-radius:8px; font-weight:600; cursor:pointer; background:linear-gradient(135deg, #22c55e 0%, #16a34a 100%); color:#fff;">Ya, Kembalikan</button>
     </div>
   </div>
 </div>
@@ -102,120 +160,267 @@
 <div class="card mb-4" style="background-color: {{ $cardBgColor }}; backdrop-filter: blur(10px); border:1px solid {{ $borderColor }};">
     {{-- Header --}}
     <div class="card-header d-flex justify-content-between align-items-center" style="background-color: rgba(20,162,186,0.5); border-bottom:1px solid {{ $borderColor }};">
-        <h5 class="text-white fw-bold mb-0">Laptop Diarsip</h5>
-        <form method="GET" class="d-flex gap-2">
-            <select name="per_page" class="form-select" style="width:auto; background-color: rgba(255,255,255,0.9); border:1px solid {{ $headerBgColor }}; color:#000;">
+    <h5 class="text-white fw-bold mb-0">Laptop Diarsip</h5>
+    <div class="d-flex align-items-center gap-2">
+        <form method="GET" class="header-controls-form d-flex gap-2" id="filterForm">
+            <select name="per_page" class="form-select" id="perPageFilter" style="width:auto; background-color: rgba(255,255,255,0.9); border:1px solid {{ $headerBgColor }}; color:#000;">
                 @foreach([10,25,50,100] as $size)
                     <option value="{{ $size }}" {{ request('per_page',10) == $size ? 'selected' : '' }}>{{ $size }} / halaman</option>
                 @endforeach
             </select>
-            <input type="text" name="search" class="form-control" placeholder="Cari Laptop.." value="{{ request('search') }}" style="background-color: rgba(255,255,255,0.9); border:1px solid {{ $headerBgColor }}; color:#000;">
-            <button type="submit" class="btn-modern btn-search">Cari</button>
+            <input type="text" name="search" class="form-control" id="searchInput" placeholder="Cari Laptop.." value="{{ request('search') }}" style="background-color: rgba(255,255,255,0.9); border:1px solid {{ $headerBgColor }}; color:#000;">
         </form>
+        <button 
+            id="selectionModeBtn"
+            class="btn btn-outline-light d-flex align-items-center justify-content-center gap-2 px-3 py-2" 
+            style="border-radius: 8px; white-space: nowrap; font-size: 14px; line-height: 1; border: 2px solid rgba(255,255,255,0.5);">
+            <i class="bx bx-checkbox-square" style="font-size: 18px;"></i>
+            <span>Pilih</span>
+        </button>
     </div>
+</div>
 
-    {{-- Table --}}
-    <div class="table-responsive">
-        <table class="table table-bordered mb-0" style="background-color: transparent;">
-            <thead style="background-color: rgba(20,162,186,0.5);">
-                <tr>
-                    <th class="text-white fw-bold">No</th>
-                    <th class="text-white fw-bold">Kode Laptop</th>
-                    <th class="text-white fw-bold">Merek - Tipe</th>
-                    <th class="text-white fw-bold">Keterangan</th>
-                    <th class="text-white fw-bold">Aksi</th>
-                </tr>
-            </thead>
-            <tbody>
-                @forelse ($laptops as $index => $laptop)
-                    <tr style="background-color: rgba(20,162,186,0.1); transition: all 0.3s ease;"
-                        onmouseover="this.style.backgroundColor='rgba(20,162,186,0.25)'"
-                        onmouseout="this.style.backgroundColor='rgba(20,162,186,0.1)'">
-                        <td class="fw-bold text-white">{{ $laptops->firstItem() + $index }}</td>
-                        <td class="fw-bold text-white">{{ $laptop->kode }}</td>
-                        <td class="fw-bold text-white">{{ $laptop->merek }} {{ $laptop->tipe }}</td>
-                        <td class="fw-bold text-white">{{ $laptop->keterangan }}</td>
-                        <td>
-                            <form action="{{ route('laptop.restore', $laptop->id) }}" method="POST" class="restore-form">
-                                @csrf
-                                @method('PATCH')
-                                <button type="button" class="btn-table"
-                                    onclick="openRestoreModal(this, '{{ $laptop->kode }}', '{{ $laptop->merek }} {{ $laptop->tipe }}', '{{ $laptop->keterangan }}')">
-                                    Kembalikan
-                                </button>
-                            </form>
-                        </td>
-                    </tr>
-                @empty
-                    <tr>
-                        <td colspan="5" class="fw-bold text-white text-center">Belum ada data laptop</td>
-                    </tr>
-                @endforelse
-            </tbody>
-        </table>
-    </div>
-
-    {{-- Pagination --}}
-    @if ($laptops->total() > 0)
-    <div class="d-flex justify-content-between align-items-center mt-3 px-3 pb-3">
-        <span class="fw-bold text-white">
-            Menampilkan {{ $laptops->firstItem() }} - {{ $laptops->lastItem() }} dari {{ $laptops->total() }} data
-        </span>
-        <div>
-            {{ $laptops->withQueryString()->links('pagination::bootstrap-5') }}
+    {{-- Table Container --}}
+    <div id="tableContainer" style="position: relative;">
+        <div id="tableContent">
+            @include('content.peminjaman.table-arsip')
         </div>
     </div>
-    @endif
 </div>
 
 <script>
-  let currentForm = null;
+(function() {
+  'use strict';
+  
+  console.log('📄 Arsip page script loaded');
 
-  function openRestoreModal(button, kode, laptop, keterangan) {
-    currentForm = button.closest('form');
-    document.getElementById('modalKode').innerText = kode;
-    document.getElementById('modalLaptop').innerText = laptop;
-    document.getElementById('modalKeterangan').innerText = keterangan;
-    document.getElementById('restoreModal').style.display = 'block';
+  let searchTimeout = null;
+
+  // ✅ Apply filters with AJAX
+  function applyFilters(page = 1) {
+    const perPage = document.getElementById('perPageFilter')?.value || 10;
+    const search = document.getElementById('searchInput')?.value || '';
+
+    const params = new URLSearchParams({
+      per_page: perPage,
+      search: search,
+      page: page
+    });
+
+    const container = document.getElementById('tableContainer');
+    if (!container) return;
+
+    container.classList.add('table-loading');
+    
+    const spinner = document.createElement('div');
+    spinner.className = 'loading-spinner';
+    spinner.id = 'loadingSpinner';
+    container.appendChild(spinner);
+
+    fetch(`{{ url()->current() }}?${params.toString()}`, {
+      headers: { 'X-Requested-With': 'XMLHttpRequest' }
+    })
+    .then(response => response.text())
+    .then(html => {
+      const parser = new DOMParser();
+      const doc = parser.parseFromString(html, 'text/html');
+      const newContent = doc.getElementById('tableContent');
+      
+      if (newContent) {
+        document.getElementById('tableContent').innerHTML = newContent.innerHTML;
+        
+        const newUrl = `${window.location.pathname}?${params.toString()}`;
+        window.history.pushState({}, '', newUrl);
+        
+        console.log('✅ Table content updated');
+      }
+    })
+    .catch(error => {
+      console.error('Error:', error);
+      if (typeof window.showToast === 'function') {
+        window.showToast('Gagal memuat data', '#ef4444');
+      }
+    })
+    .finally(() => {
+      container.classList.remove('table-loading');
+      const spinnerEl = document.getElementById('loadingSpinner');
+      if (spinnerEl) spinnerEl.remove();
+    });
   }
 
-  function closeRestoreModal() {
-    document.getElementById('restoreModal').style.display = 'none';
-    currentForm = null;
-  }
-
-  function confirmRestore() {
-    if (currentForm) {
-      const formToSubmit = currentForm;
-      closeRestoreModal();
-      formToSubmit.submit();
-    }
-  }
-
-  function showToast(message, bgColor = "#10b981") {
+  // ✅ Toast notification
+  function showToast(message, bgColor = '#10b981') {
     const toast = document.getElementById('toastNotification');
     const toastMsg = document.getElementById('toastMessage');
     
-    toast.style.background = `linear-gradient(135deg, ${bgColor} 0%, ${bgColor}dd 100%)`;
-    toastMsg.innerText = message;
+    if (!toast || !toastMsg) return;
+    
+    toastMsg.textContent = message;
+    toast.style.background = `linear-gradient(135deg, ${bgColor} 0%, ${adjustColor(bgColor, -20)} 100%)`;
     toast.style.display = 'block';
     
-    setTimeout(() => {
-      toast.style.transform = 'translateX(0)';
-    }, 10);
+    setTimeout(() => toast.style.transform = 'translateX(0)', 10);
     
     setTimeout(() => {
       toast.style.transform = 'translateX(400px)';
-      setTimeout(() => {
-        toast.style.display = 'none';
-      }, 300);
+      setTimeout(() => toast.style.display = 'none', 300);
     }, 3000);
   }
 
-  document.getElementById('restoreModal').addEventListener('click', function(e) {
-    if (e.target === this) {
-      closeRestoreModal();
+  function adjustColor(color, percent) {
+    const num = parseInt(color.replace('#', ''), 16);
+    const amt = Math.round(2.55 * percent);
+    const R = (num >> 16) + amt;
+    const G = (num >> 8 & 0x00FF) + amt;
+    const B = (num & 0x0000FF) + amt;
+    return '#' + (0x1000000 + (R < 255 ? R < 1 ? 0 : R : 255) * 0x10000 +
+      (G < 255 ? G < 1 ? 0 : G : 255) * 0x100 +
+      (B < 255 ? B < 1 ? 0 : B : 255))
+      .toString(16).slice(1);
+  }
+
+  // ✅ Initialize page controls (filters, pagination, modals)
+  function initPageControls() {
+    console.log('🔧 Initializing page controls...');
+
+    // Filter listeners
+    const perPageFilter = document.getElementById('perPageFilter');
+    const searchInput = document.getElementById('searchInput');
+    const filterForm = document.getElementById('filterForm');
+
+    if (perPageFilter && !perPageFilter.hasAttribute('data-listener-attached')) {
+      perPageFilter.addEventListener('change', () => applyFilters());
+      perPageFilter.setAttribute('data-listener-attached', 'true');
     }
+    
+    if (searchInput && !searchInput.hasAttribute('data-listener-attached')) {
+      searchInput.addEventListener('input', function() {
+        clearTimeout(searchTimeout);
+        searchTimeout = setTimeout(() => applyFilters(), 500);
+      });
+      searchInput.setAttribute('data-listener-attached', 'true');
+    }
+
+    if (filterForm && !filterForm.hasAttribute('data-listener-attached')) {
+      filterForm.addEventListener('submit', function(e) {
+        e.preventDefault();
+        applyFilters();
+      });
+      filterForm.setAttribute('data-listener-attached', 'true');
+    }
+
+    console.log('✅ Page controls initialized');
+  }
+
+  // ✅ GLOBAL EVENT DELEGATION - Persistent across Livewire navigation
+  if (!window.arsipPageInitialized) {
+    console.log('🎯 Setting up global event delegation...');
+
+    // Handle pagination
+    document.addEventListener('click', function(e) {
+      if (e.target.matches('.pagination a')) {
+        e.preventDefault();
+        const url = new URL(e.target.href);
+        const page = url.searchParams.get('page') || 1;
+        applyFilters(page);
+      }
+    });
+
+    // Handle modal buttons
+    document.addEventListener('click', function(e) {
+      const modal = document.getElementById('restoreModal');
+      if (!modal) return;
+
+      // Batal button
+      if (e.target.id === 'btnCancelRestore' || e.target.closest('#btnCancelRestore')) {
+        e.preventDefault();
+        e.stopPropagation();
+        console.log('❌ Cancel restore');
+        modal.style.display = 'none';
+        return;
+      }
+      
+      // Confirm button
+      if (e.target.id === 'btnConfirmRestore' || e.target.closest('#btnConfirmRestore')) {
+        e.preventDefault();
+        e.stopPropagation();
+        console.log('✅ Confirm restore');
+        
+        const btn = document.getElementById('btnConfirmRestore');
+        const laptopId = btn.getAttribute('data-laptop-id');
+        
+        if (!laptopId) {
+          console.error('❌ Laptop ID not found');
+          return;
+        }
+        
+        btn.disabled = true;
+        btn.textContent = 'Memproses...';
+        
+        fetch(`/laptop/restore/${laptopId}`, {
+          method: 'POST',
+          headers: {
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+            'Accept': 'application/json',
+            'X-Requested-With': 'XMLHttpRequest'
+          }
+        })
+        .then(response => response.json())
+        .then(data => {
+          modal.style.display = 'none';
+          
+          if (data.success) {
+            showToast(data.message || 'Laptop berhasil dikembalikan!', '#10b981');
+            setTimeout(() => applyFilters(), 1000);
+          } else {
+            showToast(data.message || 'Gagal mengembalikan laptop', '#ef4444');
+          }
+        })
+        .catch(error => {
+          console.error('Error:', error);
+          modal.style.display = 'none';
+          showToast('Terjadi kesalahan', '#ef4444');
+        })
+        .finally(() => {
+          btn.disabled = false;
+          btn.textContent = 'Ya, Kembalikan';
+        });
+        
+        return;
+      }
+      
+      // Close on backdrop click
+      if (e.target.id === 'restoreModal') {
+        e.target.style.display = 'none';
+      }
+    });
+
+    window.arsipPageInitialized = true;
+    console.log('✅ Global event delegation setup complete');
+  }
+
+  // Make functions globally available
+  window.applyFilters = applyFilters;
+  window.showToast = showToast;
+
+  // ✅ Initialize on first load
+  initPageControls();
+
+  // ✅ Re-initialize after Livewire navigation
+  document.addEventListener('livewire:navigated', function() {
+    console.log('🔄 Livewire navigated - reinitializing controls...');
+    initPageControls();
   });
+
+  // ✅ Show session toasts
+  @if(session('success'))
+    showToast("✓ {{ session('success') }}", "#10b981");
+  @endif
+
+  @if(session('error'))
+    showToast("✗ {{ session('error') }}", "#ef4444");
+  @endif
+
+})();
 </script>
 @endsection

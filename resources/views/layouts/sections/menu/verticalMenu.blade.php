@@ -30,7 +30,7 @@
   <ul class="menu-inner py-1">
     {{-- Dashboard --}}
     <li class="menu-item {{ request()->is('/') ? 'active' : '' }}">
-      <a href="{{ url('/') }}" class="menu-link">
+      <a wire:navigate href="{{ url('/') }}" class="menu-link">
         <i class="bx bx-home"></i>
         <div>Dashboard</div>
       </a>
@@ -42,23 +42,30 @@
     </li>
 
     <li class="menu-item {{ request()->is('tables/laptop') ? 'active' : '' }}">
-      <a href="{{ url('tables/laptop') }}" class="menu-link">
+      <a wire:navigate href="{{ url('tables/laptop') }}" class="menu-link">
         <i class="bx bx-laptop"></i>
         <div>Daftar Laptop</div>
       </a>
     </li>
 
     <li class="menu-item {{ request()->is('tables/basic') ? 'active' : '' }}">
-      <a href="{{ url('tables/basic') }}" class="menu-link">
+      <a wire:navigate href="{{ url('tables/basic') }}" class="menu-link">
         <i class="bx bx-user"></i>
         <div>Daftar Pengguna</div>
       </a>
     </li>
 
     <li class="menu-item {{ request()->is('laptop/arsip') ? 'active' : '' }}">
-      <a href="{{ url('laptop/arsip') }}" class="menu-link">
+      <a wire:navigate href="{{ url('laptop/arsip') }}" class="menu-link">
         <i class="bx bx-archive"></i>
         <div>Laptop Diarsip</div>
+      </a>
+    </li>
+
+    <li class="menu-item {{ request()->is('laptop/sold') ? 'active' : '' }}">
+      <a wire:navigate href="{{ url('laptop/sold') }}" class="menu-link">
+        <i class="bx bx-money"></i>
+        <div>Laptop Terjual</div>
       </a>
     </li>
 
@@ -68,7 +75,7 @@
     </li>
 
     <li class="menu-item {{ request()->is('laporan') ? 'active' : '' }}">
-      <a href="{{ url('laporan') }}" class="menu-link">
+      <a wire:navigate href="{{ url('laporan') }}" class="menu-link">
         <i class="bx bx-file"></i>
         <div>Laporan</div>
       </a>
@@ -83,6 +90,14 @@
     background: #14a2ba !important;
   }
 
+  #mobile-slider-tab {
+    background: #14a2ba !important;
+  }
+
+  #mobile-slider-tab:hover {
+    background: #1299b0 !important;
+  }
+
   /* Dark Mode */
   [data-theme="dark"] #layout-menu,
   body.dark-mode #layout-menu {
@@ -93,9 +108,11 @@
     background-color: rgba(255, 255, 255, 0.95) !important;
     color: #14a2ba !important;
     font-weight: 700 !important;
+    font-size: 1.05rem !important;
     border-radius: 8px !important;
     margin: 0 8px !important;
     box-shadow: 0 2px 6px rgba(0,0,0,0.15) !important;
+    padding: 0.75rem 1rem !important;
   }
 
   #layout-menu .menu-item.active > .menu-link i {
@@ -107,10 +124,12 @@
     background-color: rgba(255, 255, 255, 0.15) !important;
     color: #ffffff !important;
     font-weight: 700 !important;
+    font-size: 1.05rem !important;
     border-radius: 8px !important;
     margin: 0 8px !important;
     box-shadow: 0 2px 6px rgba(255, 255, 255, 0.2) !important;
     border-left: 3px solid #ffffff !important;
+    padding: 0.75rem 1rem !important;
     padding-left: calc(1rem - 3px) !important;
   }
 
@@ -122,6 +141,8 @@
   #layout-menu .menu-item:not(.active) > .menu-link {
     color: #ffffff !important;
     font-weight: 600 !important;
+    font-size: 1.05rem !important;
+    padding: 0.75rem 1rem !important;
   }
 
   #layout-menu .menu-item:not(.active) > .menu-link i {
@@ -152,6 +173,7 @@
   #layout-menu .menu-header-text {
     color: rgba(255, 255, 255, 0.85) !important;
     font-weight: 600 !important;
+    font-size: 0.85rem !important;
     letter-spacing: 0.5px;
   }
 
@@ -167,8 +189,13 @@
   }
 
   #layout-menu .menu-link i {
-    font-size: 22px; 
-    margin-right: 10px;
+    font-size: 26px !important;
+    margin-right: 12px !important;
+    min-width: 26px;
+  }
+
+  #layout-menu .menu-link div {
+    line-height: 1.4;
   }
 
   [data-theme="dark"] #layout-menu .menu-inner,
@@ -225,7 +252,7 @@
   }
 </style>
 
-<script>
+<script data-navigate-once="vertical-menu-scripts">
 // ==========================================
 // KILL TEMPLATE SCRIPTS FIRST
 // ==========================================
@@ -235,13 +262,11 @@
   console.clear();
   console.log('🔥 KILLING TEMPLATE SCRIPTS...');
   
-  // Block Menu class
   window.Menu = function() {};
   window.Menu.prototype.init = function() { return false; };
   window.Menu.prototype.destroy = function() { return false; };
   window.Menu.prototype.manageScroll = function() { return false; };
   
-  // Remove all event listeners on window resize
   const oldAddEventListener = window.addEventListener;
   window.addEventListener = function(type, listener, options) {
     if (type === 'resize' && listener.toString().includes('manageScroll')) {
@@ -277,10 +302,7 @@
     }
     
     console.log('✅ Elements loaded');
-    console.log('Sidebar element:', sidebar);
-    console.log('Sidebar initial left:', window.getComputedStyle(sidebar).left);
     
-    // Remove all template classes/attributes
     sidebar.removeAttribute('data-menu');
     sidebar.removeAttribute('data-scroll');
     sidebar.className = 'layout-menu menu-vertical menu bg-menu-theme';
@@ -288,21 +310,16 @@
     setupMobile();
     attachEvents();
     
-    console.log('✅ Slider ready! Try clicking the blue/purple tab on the left.');
+    console.log('✅ Slider ready!');
   }
   
   function setupMobile() {
     if (window.innerWidth < 1200) {
-      // Slider
-      slider.setAttribute('style', 'display: flex !important; position: fixed !important; top: 50% !important; left: 0 !important; transform: translateY(-50%) !important; z-index: 9999999 !important; pointer-events: auto !important; width: 45px !important; height: 100px !important; background: #14a2ba !important; border-radius: 0 20px 20px 0 !important; cursor: pointer !important; box-shadow: 3px 0 15px rgba(0,0,0,0.4) !important; align-items: center !important; justify-content: center !important;');
-      
-      // Sidebar
+      slider.setAttribute('style', 'display: flex !important; position: fixed !important; top: 50% !important; left: 0 !important; transform: translateY(-50%) !important; z-index: 9999999 !important; pointer-events: auto !important; width: 45px !important; height: 100px !important; border-radius: 0 20px 20px 0 !important; cursor: pointer !important; box-shadow: 3px 0 15px rgba(0,0,0,0.4) !important; align-items: center !important; justify-content: center !important;');
+
       sidebar.setAttribute('style', 'position: fixed !important; top: 0 !important; left: -280px !important; width: 260px !important; height: 100vh !important; z-index: 9999999 !important; transition: left 0.3s ease !important; overflow-y: auto !important; display: block !important; visibility: visible !important; transform: translateX(0) !important;');
       
       console.log('📱 Mobile setup done');
-      console.log('Sidebar position:', window.getComputedStyle(sidebar).position);
-      console.log('Sidebar left:', window.getComputedStyle(sidebar).left);
-      console.log('Sidebar z-index:', window.getComputedStyle(sidebar).zIndex);
     } else {
       slider.style.display = 'none';
       sidebar.setAttribute('style', 'position: fixed !important; top: 0 !important; left: 0 !important; width: 260px !important; height: 100vh !important;');
@@ -314,41 +331,27 @@
     
     sidebar.setAttribute('style', 'position: fixed !important; top: 0 !important; left: 0px !important; width: 260px !important; height: 100vh !important; z-index: 9999999 !important; transition: left 0.3s ease !important; overflow-y: auto !important; display: block !important; visibility: visible !important; transform: translateX(0) !important;');
     
-    // Move slider
     slider.setAttribute('style', slider.getAttribute('style').replace('left: 0', 'left: 260px'));
     
-    // Show overlay
     overlay.style.display = 'block';
     setTimeout(() => overlay.style.opacity = '1', 10);
     
-    // Rotate icon
     if (icon) icon.style.transform = 'rotate(180deg)';
     
     document.body.style.overflow = 'hidden';
     isOpen = true;
-    
-    // Debug
-    setTimeout(() => {
-      console.log('After open - Sidebar left:', window.getComputedStyle(sidebar).left);
-      console.log('After open - Sidebar z-index:', window.getComputedStyle(sidebar).zIndex);
-      console.log('After open - Sidebar visibility:', window.getComputedStyle(sidebar).visibility);
-    }, 100);
   }
   
   function close() {
     console.log('🔴 CLOSING');
     
-    // FORCE sidebar back to left: -280px
     sidebar.setAttribute('style', 'position: fixed !important; top: 0 !important; left: -280px !important; width: 260px !important; height: 100vh !important; z-index: 9999999 !important; transition: left 0.3s ease !important; overflow-y: auto !important; display: block !important; visibility: visible !important; transform: translateX(0) !important;');
     
-    // Move slider back
     slider.setAttribute('style', slider.getAttribute('style').replace('left: 260px', 'left: 0'));
     
-    // Hide overlay
     overlay.style.opacity = '0';
     setTimeout(() => overlay.style.display = 'none', 300);
     
-    // Rotate icon back
     if (icon) icon.style.transform = 'rotate(0deg)';
     
     document.body.style.overflow = '';
@@ -361,7 +364,6 @@
   }
   
   function attachEvents() {
-    // Slider click - HARUS BERHASIL!
     slider.onclick = function(e) {
       e.preventDefault();
       e.stopPropagation();
@@ -375,12 +377,10 @@
       toggle();
     };
     
-    // Overlay
     overlay.onclick = function() {
       if (isOpen) close();
     };
     
-    // Inside chevron
     const chevron = sidebar.querySelector('.layout-menu-toggle');
     if (chevron) {
       chevron.onclick = function(e) {
@@ -389,7 +389,6 @@
       };
     }
     
-    // Menu links
     sidebar.querySelectorAll('.menu-link:not(.layout-menu-toggle)').forEach(link => {
       link.onclick = function() {
         if (window.innerWidth < 1200 && isOpen) {
@@ -398,7 +397,6 @@
       };
     });
     
-    // Resize
     window.addEventListener('resize', function() {
       setupMobile();
       if (window.innerWidth >= 1200 && isOpen) {
@@ -409,11 +407,81 @@
     console.log('✅ Events attached!');
   }
   
-  // Start
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', init);
   } else {
     init();
   }
+  
+  // Reinit after Livewire navigation
+  document.addEventListener('livewire:navigated', function() {
+    console.log('🔄 Livewire navigated - reinitializing slider...');
+    setTimeout(init, 50);
+  });
+})();
+
+// ==========================================
+// UPDATE ACTIVE MENU AFTER NAVIGATION
+// ==========================================
+(function() {
+  'use strict';
+  
+  function updateActiveMenu() {
+    console.log('🎯 Updating active menu...');
+    
+    const currentPath = window.location.pathname;
+    console.log('Current path:', currentPath);
+    
+    // Remove all active classes first
+    document.querySelectorAll('#layout-menu .menu-item').forEach(item => {
+      item.classList.remove('active');
+    });
+    
+    // Add active class to matching menu item
+    document.querySelectorAll('#layout-menu .menu-link').forEach(link => {
+      const href = link.getAttribute('href');
+      
+      if (!href) return;
+      
+      // Extract path from href
+      let linkPath;
+      try {
+        linkPath = new URL(href, window.location.origin).pathname;
+      } catch (e) {
+        linkPath = href;
+      }
+      
+      // Exact match
+      if (linkPath === currentPath) {
+        link.closest('.menu-item').classList.add('active');
+        console.log('✅ Active menu set for:', linkPath);
+      }
+      // Special case for root/dashboard
+      else if (currentPath === '/' && linkPath === '/') {
+        link.closest('.menu-item').classList.add('active');
+        console.log('✅ Active menu set for dashboard');
+      }
+      // Partial match (for nested routes)
+      else if (currentPath.startsWith(linkPath) && linkPath !== '/') {
+        link.closest('.menu-item').classList.add('active');
+        console.log('✅ Active menu set for:', linkPath);
+      }
+    });
+  }
+  
+  // Initial load
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', updateActiveMenu);
+  } else {
+    updateActiveMenu();
+  }
+  
+  // After Livewire navigation
+  document.addEventListener('livewire:navigated', function() {
+    console.log('🔄 Livewire navigated - updating menu...');
+    setTimeout(updateActiveMenu, 50);
+  });
+  
+  console.log('✅ Active menu updater initialized!');
 })();
 </script>

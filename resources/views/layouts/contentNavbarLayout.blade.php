@@ -12,7 +12,7 @@
 
 @section('layoutContent')
 
-{{-- Prevent White Flash & Preloader --}}
+{{-- Preloader --}}
 <script>
   (function() {
     const isDark =
@@ -30,7 +30,6 @@
   })();
 </script>
 
-{{-- Preloader overlay --}}
 <div id="preloader">
   <div class="loader">
     <div class="spinner"></div>
@@ -41,7 +40,6 @@
 <div class="layout-wrapper layout-content-navbar {{ $isMenu ? '' : 'layout-without-menu' }}">
   <div class="layout-container">
 
-    {{-- Sidebar Menu --}}
     @if ($isMenu)
       @include('layouts/sections/menu/verticalMenu')
     @endif
@@ -70,7 +68,7 @@
 </div>
 
 <style>
-  /* Preloader */
+  /* Preloader styles */
   #preloader {
     position: fixed;
     inset: 0;
@@ -115,7 +113,6 @@
     50% { opacity: 1; }
   }
 
-  /* Hide after loaded */
   body.loaded #preloader {
     opacity: 0;
     visibility: hidden;
@@ -126,30 +123,79 @@
   window.addEventListener('load', () => {
     setTimeout(() => {
       document.body.classList.add('loaded');
-    }, 0);
+      sessionStorage.setItem('app-loaded', 'true');
+    }, 100);
+  });
+
+  if (sessionStorage.getItem('app-loaded') === 'true') {
+    document.body.classList.add('loaded');
+  }
+
+  document.addEventListener('livewire:navigated', () => {
+    document.body.classList.add('loaded');
   });
 </script>
 
-{{-- CSS JS --}}
+{{-- ❌ HAPUS SEMUA BARIS INI (sudah ada di commonMaster) --}}
+{{-- 
 <link rel="stylesheet" href="{{ asset('assets/vendor/css/core.css') }}">
 <link rel="stylesheet" href="{{ asset('assets/vendor/css/theme-default.css') }}">
 <link rel="stylesheet" href="{{ asset('assets/css/demo.css') }}">
-<link rel="stylesheet" href="{{ asset('assets/vendor/libs/perfect-scrollbar/perfect-scrollbar.css') }}">
-<link rel="stylesheet" href="{{ asset('assets/vendor/libs/apex-charts/apex-charts.css') }}">
-<link rel="stylesheet" href="{{ asset('assets/vendor/libs/datatables-bs5/datatables.bootstrap5.css') }}">
-<link rel="stylesheet" href="{{ asset('assets/vendor/libs/datatables-responsive-bs5/responsive.bootstrap5.css') }}">
-<link rel="stylesheet" href="{{ asset('assets/vendor/libs/datatables-buttons-bs5/buttons.bootstrap5.css') }}">
+...semua CSS dan JS...
+--}}
 
-<script src="{{ asset('assets/vendor/libs/jquery/jquery.js') }}"></script>
-<script src="{{ asset('assets/vendor/libs/popper/popper.js') }}"></script>
-<script src="{{ asset('assets/vendor/js/bootstrap.js') }}"></script>
-<script src="{{ asset('assets/vendor/libs/perfect-scrollbar/perfect-scrollbar.js') }}"></script>
-<script src="{{ asset('assets/vendor/js/menu.js') }}"></script>
-<script src="{{ asset('assets/js/main.js') }}"></script>
-<script src="{{ asset('assets/vendor/libs/apex-charts/apexcharts.js') }}"></script>
-<script src="{{ asset('assets/vendor/libs/datatables-bs5/datatables-bootstrap5.js') }}"></script>
+{{-- ✅ HANYA PUSH CSS/JS yang SPESIFIK untuk halaman ini --}}
+@push('styles')
+  {{-- Custom styles for this layout only --}}
+@endpush
 
-<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
-<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+@push('scripts')
+  {{-- ✅ Reinitialize plugins setelah Livewire navigation --}}
+  <script>
+    document.addEventListener('livewire:navigated', () => {
+      
+      // Select2 (if available via CDN in specific pages)
+      if (typeof $.fn.select2 !== 'undefined') {
+        $('.select2').each(function() {
+          if (!$(this).hasClass('select2-hidden-accessible')) {
+            $(this).select2({
+              theme: 'bootstrap-5',
+              width: '100%'
+            });
+          }
+        });
+      }
+      
+      // DataTables (if available via CDN in specific pages)
+      if (typeof $.fn.DataTable !== 'undefined' && $('.datatable').length) {
+        $('.datatable').each(function() {
+          if ($.fn.DataTable.isDataTable(this)) {
+            $(this).DataTable().destroy();
+          }
+          
+          $(this).DataTable({
+            responsive: true,
+            pageLength: 25,
+            language: {
+              url: '//cdn.datatables.net/plug-ins/1.13.7/i18n/id.json'
+            }
+          });
+        });
+      }
+      
+      // ApexCharts (if available)
+      if (typeof ApexCharts !== 'undefined') {
+        document.querySelectorAll('[data-chart]').forEach(el => {
+          if (!el.hasAttribute('data-chart-initialized')) {
+            const chartData = JSON.parse(el.getAttribute('data-chart'));
+            new ApexCharts(el, chartData).render();
+            el.setAttribute('data-chart-initialized', 'true');
+          }
+        });
+      }
+      
+    });
+  </script>
+@endpush
 
 @endsection

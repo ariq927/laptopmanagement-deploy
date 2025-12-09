@@ -8,7 +8,7 @@
     <h4 class="mb-4">Detail Laptop</h4>
 
     @php
-      $isReadOnly = ($laptop->status === 'in use');
+      $isReadOnly = ($laptop->status === 'in use' || $laptop->status === 'sold');
     @endphp
 
     @unless($isReadOnly)
@@ -67,7 +67,7 @@
       <div class="mb-3">
         <label class="form-label fw-semibold">Status</label>
         {{-- Tampilan readonly --}}
-        <input type="text" id="statusText" class="form-control" value="{{ ucfirst($laptop->status) }}" readonly>
+        <input type="text" id="statusText" class="form-control" value="{{ ucwords($laptop->status) }}" readonly>
         {{-- Dropdown edit --}}
         <select name="status" id="statusSelect" class="form-select editable-field d-none">
           <option value="in stock" {{ $laptop->status === 'in stock' ? 'selected' : '' }}>In Stock</option>
@@ -75,6 +75,27 @@
           <option value="diarsip" {{ $laptop->status === 'diarsip' ? 'selected' : '' }}>Diarsip</option>
         </select>
       </div>
+
+      {{-- Info Peminjam Aktif (hanya muncul jika status in use) --}}
+      @if($laptop->status === 'in use' && $peminjamAktif)
+      <div class="mb-3">
+        <label class="form-label fw-semibold">Sedang Digunakan Oleh</label>
+        <div class="card border-info" style="background-color: rgba(13, 202, 240, 0.1);">
+          <div class="card-body d-flex justify-content-between align-items-center">
+            <div>
+              <h6 class="mb-1 fw-bold text-info">{{ $peminjamAktif->nama }}</h6>
+              <small class="text-muted">Kode Pegawai: {{ $peminjamAktif->department }}</small>
+            </div>
+            <a href="{{ route('peminjaman.detail', $peminjamAktif->id) }}" 
+               class="btn btn-sm btn-info" 
+               style="border-radius: 20px;">
+              <i class='bx bx-info-circle me-1'></i>
+              Lihat Detail Peminjaman
+            </a>
+          </div>
+        </div>
+      </div>
+      @endif
 
       {{-- Foto Laptop --}}
       <div class="mb-3">
@@ -125,6 +146,19 @@
   </div>
 </div>
 
+{{-- Modal Konfirmasi Arsip --}}
+<div id="archiveModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.7); z-index:9999; backdrop-filter:blur(5px);">
+  <div style="position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); background:linear-gradient(135deg, #14a2ba 0%, #0d7a8e 100%); padding:30px; border-radius:15px; box-shadow:0 10px 40px rgba(0,0,0,0.5); min-width:400px; border:2px solid rgba(255,255,255,0.2);">
+    <h4 style="color:#fff; margin-bottom:20px; text-align:center; font-weight:bold; text-shadow:2px 2px 4px rgba(0,0,0,0.3);">Arsipkan Laptop</h4>
+    <p style="color:#fff; margin-bottom:15px; opacity:0.9;">Masukkan keterangan pengarsipan:</p>
+    <textarea id="keteranganInput" class="form-control" rows="3" placeholder="Contoh: Rusak pada bagian keyboard" style="margin-bottom:20px; border:2px solid rgba(255,255,255,0.3); background:rgba(255,255,255,0.95);"></textarea>
+    <div style="display:flex; gap:10px; justify-content:flex-end;">
+      <button onclick="closeArchiveModal()" class="btn btn-light" style="font-weight:bold; padding:8px 20px;">Batal</button>
+      <button onclick="confirmArchive()" class="btn btn-danger" style="font-weight:bold; padding:8px 20px;">Arsipkan</button>
+    </div>
+  </div>
+</div>
+
 {{-- Fullscreen Image --}}
 <div id="imageModal" class="custom-modal" style="display: none;">
   <div class="custom-modal-overlay"></div>
@@ -137,7 +171,6 @@
 
 @section('page-script')
 <style>
-  /* === Fullscreen Image Modal === */
   .custom-modal {
     position: fixed !important;
     top: 0;
@@ -258,7 +291,6 @@
     transform: translateY(-2px);
   }
 
-  /* Dark mode fix */
   [data-theme="dark"] .foto-btn-container {
     background: rgba(40, 40, 60, 0.9);
     border-top: 1px solid #444;
@@ -282,10 +314,13 @@ document.addEventListener('DOMContentLoaded', function() {
   const imageModal = document.getElementById('imageModal');
   const modalImage = document.getElementById('modalImage');
   const closeModal = document.getElementById('closeModal');
+  const archiveModal = document.getElementById('archiveModal');
+  const keteranganInput = document.getElementById('keteranganInput');
 
+  const originalStatus = '{{ $laptop->status }}';
   let editMode = false;
+  let pendingArchive = false;
 
-  // === TOGGLE EDIT MODE ===
   if (toggleBtn) {
     toggleBtn.addEventListener('click', function() {
       editMode = !editMode;
@@ -310,16 +345,83 @@ document.addEventListener('DOMContentLoaded', function() {
         saveBtn.classList.add('d-none');
         form.reset();
         statusSelect.value = "{{ $laptop->status }}";
-        statusText.value = "{{ ucfirst($laptop->status) }}";
+        statusText.value = "{{ ucwords($laptop->status) }}";
 
         if (laptopImage && originalSrc) laptopImage.src = originalSrc;
         if (hapusInput) hapusInput.value = "0";
         if (hapusNotif) hapusNotif.classList.add('d-none');
+        pendingArchive = false;
       }
     });
   }
 
-  // === HAPUS FOTO ===
+  form.addEventListener('submit', function(e) {
+    const newStatus = statusSelect.value;
+    
+    if (originalStatus !== 'diarsip' && newStatus === 'diarsip') {
+      e.preventDefault();
+      archiveModal.style.display = 'block';
+      keteranganInput.value = '';
+      keteranganInput.focus();
+      return;
+    }
+    
+    if (originalStatus !== 'in use' && newStatus === 'in use') {
+      e.preventDefault();
+      
+      const formData = new FormData(form);
+      
+      fetch(form.action, {
+        method: 'POST',
+        body: formData,
+        headers: {
+          'X-Requested-With': 'XMLHttpRequest',
+          'Accept': 'application/json'
+        }
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (data.success) {
+          window.location.href = "/peminjaman/create/{{ $laptop->id }}";
+        } else {
+          alert(data.message || 'Gagal mengubah status laptop');
+        }
+      })
+      .catch(error => {
+        console.error('Error:', error);
+        alert('Terjadi kesalahan saat menyimpan data');
+      });
+    }
+  });
+
+  window.closeArchiveModal = function() {
+    archiveModal.style.display = 'none';
+    statusSelect.value = originalStatus;
+    keteranganInput.value = '';
+  };
+
+  window.confirmArchive = function() {
+    const keterangan = keteranganInput.value.trim();
+    
+    if (keterangan === '') {
+      alert('Keterangan wajib diisi untuk pengarsipan!');
+      keteranganInput.focus();
+      return;
+    }
+
+    let keteranganField = document.querySelector('input[name="keterangan"]');
+    if (!keteranganField) {
+      keteranganField = document.createElement('input');
+      keteranganField.type = 'hidden';
+      keteranganField.name = 'keterangan';
+      form.appendChild(keteranganField);
+    }
+    keteranganField.value = keterangan;
+
+    archiveModal.style.display = 'none';
+    form.submit();
+  };
+
   if (hapusBtn) {
     hapusBtn.addEventListener('click', function(event) {
       event.preventDefault();
@@ -332,7 +434,6 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   }
 
-  // === PREVIEW FOTO BARU ===
   const fotoInput = document.getElementById('fotoInput');
   if (fotoInput) {
     fotoInput.addEventListener('change', function(e) {
@@ -348,7 +449,6 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   }
 
-  // === FULLSCREEN IMAGE MODAL ===
   if (laptopImage && imageModal && modalImage) {
     laptopImage.addEventListener('click', function() {
       const src = this.src;
@@ -363,7 +463,12 @@ document.addEventListener('DOMContentLoaded', function() {
       if (e.target === imageModal) imageModal.style.display = 'none';
     });
     document.addEventListener('keydown', e => {
-      if (e.key === 'Escape') imageModal.style.display = 'none';
+      if (e.key === 'Escape') {
+        imageModal.style.display = 'none';
+        if (archiveModal.style.display === 'block') {
+          closeArchiveModal();
+        }
+      }
     });
   }
 });

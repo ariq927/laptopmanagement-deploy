@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\LaptopData;
+use App\Models\SoldLaptop;
 use Cloudinary\Cloudinary;
 
 class LaptopController extends Controller
@@ -39,6 +40,7 @@ class LaptopController extends Controller
             'spesifikasi' => 'required|string',
             'status' => 'required|in:in stock,in use,diarsip',
             'foto' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
+            'keterangan' => 'required_if:status,diarsip|nullable|string|max:500',
         ]);
 
         $tahun = date('y');
@@ -54,7 +56,7 @@ class LaptopController extends Controller
 
         $kodeBaru = $prefix . $newNumber;
 
-        $data = $request->only(['merek', 'tipe', 'spesifikasi', 'status']);
+        $data = $request->only(['merek', 'tipe', 'spesifikasi', 'status', 'keterangan']);
         $data['kode'] = $kodeBaru;
         $data['stok'] = 1;
 
@@ -89,42 +91,67 @@ class LaptopController extends Controller
         return redirect()->route('laptop.index')->with('success', 'Laptop berhasil ditambahkan!');
     }
 
-    public function update(Request $request, LaptopData $laptop)
+    public function update(Request $request, $id)
     {
-        $data = $request->only(['merek', 'tipe', 'spesifikasi', 'serial_number', 'status']);
-
-        $cloudinary = new Cloudinary([
-            'cloud' => [
-                'cloud_name' => env('CLOUDINARY_CLOUD_NAME'),
-                'api_key'    => env('CLOUDINARY_API_KEY'),
-                'api_secret' => env('CLOUDINARY_API_SECRET'),
-            ],
+        $request->validate([
+            'merek' => 'required|string|max:255',
+            'tipe' => 'required|string|max:255',
+            'spesifikasi' => 'nullable|string',
+            'status' => 'required|in:in stock,in use,diarsip',
+            'foto' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+            'hapus_foto' => 'nullable|in:0,1',
+            'keterangan' => 'required_if:status,diarsip|string|max:500'
+        ], [
+            'keterangan.required_if' => 'Keterangan wajib diisi untuk pengarsipan'
         ]);
 
-        if ($request->has('hapus_foto') && $request->hapus_foto == '1' && $laptop->public_id) {
-            $cloudinary->uploadApi()->destroy($laptop->public_id);
-            $data['foto'] = null;
-            $data['public_id'] = null;
-        } elseif ($request->hasFile('foto')) {
-            if ($laptop->public_id) {
-                $cloudinary->uploadApi()->destroy($laptop->public_id);
-            }
+        $laptop = LaptopData::findOrFail($id);
+        $originalStatus = $laptop->status;
 
-            $uploaded = $cloudinary->uploadApi()->upload(
-                $request->file('foto')->getRealPath(),
-                ['folder' => 'laptops']
-            );
+        $laptop->merek = $request->merek;
+        $laptop->tipe = $request->tipe;
+        $laptop->spesifikasi = $request->spesifikasi;
+        $laptop->status = $request->status;
 
-            $data['foto'] = $uploaded['secure_url'];
-            $data['public_id'] = $uploaded['public_id'];
-        } else {
-            $data['foto'] = $laptop->foto;
-            $data['public_id'] = $laptop->public_id;
+        if ($request->status === 'diarsip') {
+            $laptop->keterangan = $request->keterangan;
         }
 
-        $laptop->update($data);
+        if ($request->hasFile('foto')) {
+            if ($laptop->foto && file_exists(public_path($laptop->foto))) {
+                unlink(public_path($laptop->foto));
+            }
 
-        return back()->with('success', 'Data laptop berhasil diperbarui.');
+            $file = $request->file('foto');
+            $filename = time() . '_' . $file->getClientOriginalName();
+            $file->move(public_path('uploads/laptop'), $filename);
+            $laptop->foto = 'uploads/laptop/' . $filename;
+        }
+
+        if ($request->hapus_foto == '1' && $laptop->foto) {
+            if (file_exists(public_path($laptop->foto))) {
+                unlink(public_path($laptop->foto));
+            }
+            $laptop->foto = null;
+        }
+
+        $laptop->save();
+
+        if ($request->ajax() || $request->wantsJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Status laptop berhasil diubah',
+                'redirect_to_borrow' => ($originalStatus !== 'in use' && $request->status === 'in use')
+            ]);
+        }
+
+        if ($originalStatus !== 'in use' && $request->status === 'in use') {
+            return redirect("/peminjaman/create/{$laptop->id}")
+                ->with('info', 'Status laptop diubah. Silakan lengkapi form peminjaman.');
+        }
+
+        return redirect()->route('laptop.index', $laptop->id)
+            ->with('success', 'Data laptop berhasil diupdate');
     }
 
     public function archive(Request $request, $id)
@@ -172,7 +199,7 @@ class LaptopController extends Controller
         return view('content.tables.archive-laptop', compact('laptops'));
     }
 
-    // ================= API for React ================= //
+    // ================= API ================= //
 
     public function apiArsipLaptop(Request $request)
     {
@@ -223,16 +250,139 @@ class LaptopController extends Controller
     {
         $query = LaptopData::query();
 
+        // Filter pencarian
         if ($request->search) {
-            $query->where('merek', 'like', "%{$request->search}%")
+            $query->where(function($q) use ($request) {
+                $q->where('merek', 'like', "%{$request->search}%")
                 ->orWhere('kode', 'like', "%{$request->search}%")
-                ->orWhere('status', 'like', "%{$request->search}%")
-                ->orWhere('tipe', 'like', "%{$request->search}%");
+                ->orWhere('tipe', 'like', "%{$request->search}%")
+                ->orWhere('spesifikasi', 'like', "%{$request->search}%");
+            });
+        }
+
+        // Filter status
+        if ($request->status && $request->status !== '') {
+            $query->where('status', $request->status);
         }
 
         $perPage = $request->input('per_page', 10);
-        $laptops = $query->paginate($perPage);
+        $laptops = $query->orderBy('id', 'desc')->paginate($perPage);
 
         return response()->json($laptops);
     }
+    
+    public function edit($id)
+    {
+        $laptop = LaptopData::with('peminjamanAktif')->findOrFail($id);
+
+        $peminjamAktif = $laptop->peminjamanAktif;
+
+        return view('content.tables.edit-laptop', compact('laptop', 'peminjamAktif'));
+    }
+
+    public function show($id)
+    {
+        $laptop = LaptopData::where('id', $id)
+                            ->where('status', 'diarsip') 
+                            ->firstOrFail();
+
+        return view('content.laptop.arsip-detail', compact('laptop'));
+    }
+
+    public function updateKeterangan(Request $request, $id)
+    {
+        $laptop = LaptopData::where('id', $id)
+                            ->where('status', 'diarsip')
+                            ->firstOrFail();
+
+        $laptop->keterangan = $request->keterangan;
+        $laptop->save();
+
+        return back()->with('success', 'Keterangan berhasil diperbarui.');
+    }   
+    
+    public function showSoldForm($id)
+    {
+        $laptop = LaptopData::findOrFail($id);
+        
+        if ($laptop->status !== 'in stock') {
+            return redirect()->route('laptop.index')
+                ->with('error', 'Laptop tidak dapat dijual karena status saat ini: ' . $laptop->status);
+        }
+        
+        return view('content.tables.sold-laptop', compact('laptop'));
+    }
+
+    public function processSold(Request $request, $id)
+    {
+        $request->validate([
+            'buyer_name' => 'required|string|max:255',
+            'buyer_id' => 'nullable|string|max:100',
+            'price' => 'required|numeric|min:0',
+            'notes' => 'nullable|string|max:1000',
+        ]);
+
+        $laptop = LaptopData::findOrFail($id);
+        
+        if ($laptop->status !== 'in stock') {
+            return redirect()->route('laptop.index')
+                ->with('error', 'Laptop tidak dapat dijual karena status saat ini: ' . $laptop->status);
+        }
+
+        \DB::transaction(function () use ($laptop, $request) {
+            $laptop->status = 'sold';
+            $laptop->save();
+
+            SoldLaptop::create([
+                'laptop_id' => $laptop->id,
+                'buyer_name' => $request->buyer_name,
+                'buyer_id' => $request->buyer_id,
+                'sold_price' => $request->price,
+                'notes' => $request->notes,
+                'sold_at' => now(),
+            ]);
+        });
+
+        return redirect()->route('laptop.index')
+            ->with('success', 'Laptop berhasil dijual kepada ' . $request->buyer_name);
+    }
+
+   public function sold(Request $request)
+    {
+        $perPage = $request->get('per_page', 10);
+        $search = $request->get('search', '');
+
+        $soldLaptops = LaptopData::where('laptop_data.status', 'sold')
+            ->join('sold_laptops', 'laptop_data.id', '=', 'sold_laptops.laptop_id')
+            ->select('laptop_data.*', 'sold_laptops.sold_at', 'sold_laptops.buyer_name', 'sold_laptops.buyer_id', 'sold_laptops.sold_price', 'sold_laptops.notes')
+            ->when($search, function($query, $search) {
+                $query->where(function($q) use ($search) {
+                    $q->where('sold_laptops.buyer_name', 'like', "%{$search}%")
+                    ->orWhere('laptop_data.kode', 'like', "%{$search}%")
+                    ->orWhere('laptop_data.merek', 'like', "%{$search}%")
+                    ->orWhere('laptop_data.tipe', 'like', "%{$search}%");
+                });
+            })
+            ->orderBy('sold_laptops.sold_at', 'desc')
+            ->paginate($perPage)
+            ->withQueryString(); 
+
+        if ($request->ajax()) {
+            return view('content.peminjaman.table-soldlaptop', compact('soldLaptops'));
+        }
+
+        return view('content.tables.listlaptopsold', compact('soldLaptops', 'perPage', 'search'));
+    }
+
+    public function soldDetail($id)
+    {
+        $laptop = LaptopData::where('laptop_data.id', $id)  
+            ->where('laptop_data.status', 'sold')  
+            ->join('sold_laptops', 'laptop_data.id', '=', 'sold_laptops.laptop_id')
+            ->select('laptop_data.*', 'sold_laptops.*')
+            ->firstOrFail();
+
+        return view('content.tables.sold-detail', compact('laptop'));
+    }
+
 }

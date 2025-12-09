@@ -3,7 +3,7 @@
         <tr>
             <th>No</th>
             <th>Nama</th>
-            <th>Kode Pegawai</th>
+            <th>Posisi</th>
             <th>Merek Laptop</th>
             <th>Tipe Laptop</th>
             <th>Tanggal Mulai</th>

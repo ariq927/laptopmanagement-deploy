@@ -192,10 +192,14 @@ Route::get('/tables/laptop', [AdminController::class, 'index'])->middleware('aut
 Route::get('/peminjaman/create/{id}', [PeminjamanNewController::class, 'create'])->name('peminjaman.create');
 Route::get('/peminjaman/{id}', [PeminjamanNewController::class, 'showDetail'])->name('peminjaman.detail');
 Route::put('/peminjaman/update-status/{id}', [PeminjamanNewController::class, 'updateStatus'])->name('peminjaman.updateStatus');
+Route::post('/peminjaman/riwayat/{id}/update-status', [PeminjamanNewController::class, 'updateStatusHistori'])->name('peminjaman.riwayat.update-status');
+Route::get('/laptop/{id}/edit', [LaptopController::class, 'edit'])->name('laptop.edit');
 
-
-
-
+// jual laptop
+Route::get('/laptop/{id}/sold', [LaptopController::class, 'showSoldForm'])->name('laptop.sold');
+Route::post('/laptop/{id}/sold', [LaptopController::class, 'processSold'])->name('laptop.processSold');
+Route::get('/laptop/sold', [LaptopController::class, 'sold'])->name('laptop.sold');
+Route::get('/laptop/sold/{id}/detail', [LaptopController::class, 'soldDetail'])->name('laptop.sold.detail');
 
 // ========================
 // LOGIN (User)
@@ -237,7 +241,8 @@ Route::get('/laptop/data', [LaptopController::class, 'getData']);
 Route::get('/laptop/arsip', [LaptopController::class, 'arsipLaptop'])->name('laptop.arsip');
 Route::patch('/laptop/{id}/arsip', [LaptopController::class, 'archive'])->name('laptop.archive');
 Route::patch('/laptop/{id}/restore', [LaptopController::class, 'restore'])->name('laptop.restore');
-
+Route::get('/arsip/laptop/{id}', [LaptopController::class, 'show'])->name('laptop.arsip.show');
+Route::patch('/laptop/{id}/keterangan', [LaptopController::class, 'updateKeterangan'])->name('laptop.update-keterangan');
 
 // ========================
 // LAPORAN

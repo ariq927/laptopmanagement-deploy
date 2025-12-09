@@ -22,4 +22,10 @@ class LaptopData extends Model
         'public_id',
         'keterangan'
     ];
+
+    public function peminjamanAktif()
+    {
+        return $this->hasOne(DataPeminjam::class, 'laptop_id')
+                    ->where('status_peminjaman', 'active');
+    }
 }

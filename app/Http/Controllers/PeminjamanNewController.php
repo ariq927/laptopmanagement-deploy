@@ -4,10 +4,12 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 use App\Models\LaptopData;
 use App\Models\DataPeminjam;
 use App\Models\HistoriPeminjaman;
 use Illuminate\Support\Facades\DB;
+use Carbon\Carbon;
 
 class PeminjamanNewController extends Controller
 {
@@ -51,6 +53,7 @@ class PeminjamanNewController extends Controller
                 'tanggal_mulai' => $validated['tanggal_mulai'],
                 'tanggal_selesai' => $validated['tanggal_selesai'],
                 'nomor_telepon' => $validated['nomor_telepon'],
+                'status_peminjaman' => 'active', 
             ]);
 
             HistoriPeminjaman::create([
@@ -74,27 +77,56 @@ class PeminjamanNewController extends Controller
     {
         $perPage = $request->input('per_page', 10);
         $search = $request->input('search', '');
+        $statusFilter = $request->input('status_filter', 'all');
 
-        $peminjams = DataPeminjam::with('laptop')
-            ->select('data_peminjam.*')
-            ->join(
-                DB::raw('(SELECT department, MAX(id) AS max_id FROM data_peminjam GROUP BY department) AS latest'),
-                'data_peminjam.id',
-                '=',
-                'latest.max_id'
-            )
-            ->where(function ($query) use ($search) {
-                $query->where('data_peminjam.nama', 'like', "%$search%")
-                    ->orWhere('data_peminjam.department', 'like', "%$search%");
-            })
-            ->orderByDesc('data_peminjam.created_at')
+        // PERBAIKAN: Group by laptop_id, bukan department
+        // Karena yang penting adalah siapa yang sedang meminjam laptop tersebut saat ini
+        $subquery = DB::table('data_peminjam as dp')
+            ->leftJoin('laptop_data as ld', 'dp.laptop_id', '=', 'ld.id')
+            ->select('dp.laptop_id'); // Ubah dari department ke laptop_id
+
+        if ($statusFilter === 'active') {
+            $subquery->where('dp.status_peminjaman', 'active')
+                ->where('ld.status', 'in use');
+        } elseif ($statusFilter === 'expired') {
+            $subquery->where(function($q) {
+                $q->where('dp.status_peminjaman', 'expired');
+            });
+        }
+
+        $subquery = $subquery
+            ->selectRaw('MAX(CASE 
+                WHEN dp.status_peminjaman = "active" AND ld.status = "in use" 
+                THEN dp.id 
+            END) as active_id')
+            ->selectRaw('MAX(dp.id) as max_id')
+            ->groupBy('dp.laptop_id'); // Ubah dari department ke laptop_id
+
+        $query = DataPeminjam::with('laptop')
+            ->joinSub($subquery, 'latest', function($join) {
+                $join->on('data_peminjam.laptop_id', '=', 'latest.laptop_id') // Ubah dari department ke laptop_id
+                    ->on('data_peminjam.id', '=', DB::raw('COALESCE(latest.active_id, latest.max_id)'));
+            });
+
+        if ($search) {
+            $query->where(function ($q) use ($search) {
+                $q->where('data_peminjam.nama', 'like', "%$search%")
+                ->orWhere('data_peminjam.department', 'like', "%$search%")
+                ->orWhereHas('laptop', function($laptopQuery) use ($search) {
+                    $laptopQuery->where('merek', 'like', "%$search%")
+                                ->orWhere('tipe', 'like', "%$search%")
+                                ->orWhere('kode', 'like', "%$search%");
+                });
+            });
+        }
+
+        $peminjams = $query->orderByDesc('data_peminjam.created_at')
             ->paginate($perPage)
             ->withQueryString();
 
         return view('content.tables.tables-basic', compact('peminjams', 'search', 'perPage'));
     }
-
-
+    
     public function selesai($id)
     {
         $pinjam = DataPeminjam::findOrFail($id);
@@ -113,7 +145,7 @@ class PeminjamanNewController extends Controller
                     'tanggal_selesai' => now(),
                 ]);
 
-            $pinjam->delete();
+            $pinjam->update(['status_peminjaman' => 'expired']);
         });
 
         return redirect()->back()->with('success', 'Peminjaman selesai. Status laptop berubah menjadi in stock.');
@@ -137,7 +169,6 @@ class PeminjamanNewController extends Controller
         return view('content.tables.tables-basic', compact('peminjams', 'perPage', 'user'));
     }
 
-    // API
     public function apiIndex(Request $request)
     {
         $query = DataPeminjam::with('laptop');
@@ -169,85 +200,170 @@ class PeminjamanNewController extends Controller
                     'tanggal_selesai' => now(),
                 ]);
 
-            $pinjam->delete();
+            $pinjam->update(['status_peminjaman' => 'expired']);
         });
 
         return response()->json(['success' => true]);
     }
 
     public function updateStatus(Request $request, $id)
-{
-    try {
-        $pinjam = DataPeminjam::findOrFail($id);
-        $statusBaru = $request->input('status');
+    {
+        try {
+            $pinjam = DataPeminjam::findOrFail($id);
+            $statusBaru = $request->input('status');
+            $keterangan = $request->input('keterangan'); 
 
-        if (!in_array($statusBaru, ['in stock', 'diarsip'])) {
-            return response()->json(['success' => false, 'error' => 'Status tidak valid.'], 400);
-        }
-
-        $hasilStatus = $statusBaru;
-        $masihAktif = false;
-
-        DB::transaction(function () use ($pinjam, $statusBaru, &$hasilStatus, &$masihAktif) {
-            // ubah status laptop
-            if ($pinjam->laptop) {
-                $pinjam->laptop->update(['status' => $statusBaru]);
+            if (!in_array($statusBaru, ['in stock', 'diarsip'])) {
+                return response()->json(['success' => false, 'message' => 'Status tidak valid.'], 400);
             }
 
-            // ubah histori
-            HistoriPeminjaman::where('laptop_id', $pinjam->laptop_id)
-                ->where('department', $pinjam->department)
-                ->where('status', 'aktif')
-                ->update([
-                    'status' => 'selesai',
-                    'tanggal_selesai' => now(),
+            if ($statusBaru === 'diarsip' && empty($keterangan)) {
+                return response()->json([
+                    'success' => false, 
+                    'message' => 'Keterangan wajib diisi untuk pengarsipan.'
+                ], 400);
+            }
+
+            DB::transaction(function () use ($pinjam, $statusBaru, $keterangan) {
+                if ($pinjam->laptop) {
+                    $updateData = ['status' => $statusBaru];
+                    
+                    if ($statusBaru === 'diarsip' && $keterangan) {
+                        $updateData['keterangan'] = $keterangan;
+                    }
+                    
+                    $pinjam->laptop->update($updateData);
+                }
+
+                HistoriPeminjaman::where('laptop_id', $pinjam->laptop_id)
+                    ->where('department', $pinjam->department)
+                    ->where('status', 'aktif')
+                    ->update([
+                        'status' => 'selesai',
+                        'tanggal_selesai' => now(),
+                    ]);
+
+                $pinjam->update([
+                    'status_peminjaman' => 'expired',
+                    'tanggal_selesai' => $pinjam->tanggal_selesai ?? now()
                 ]);
 
-            // hapus data aktif
-            $pinjam->delete();
+                // PERBAIKAN: Cek berdasarkan laptop_id, bukan department
+                $masihAdaAktif = DataPeminjam::where('laptop_id', $pinjam->laptop_id)
+                    ->where('status_peminjaman', 'active')
+                    ->whereHas('laptop', function($q) {
+                        $q->where('status', 'in use');
+                    })
+                    ->exists();
 
-            // cek apakah masih ada aktif lain di departemen sama
-            $masihAktif = DataPeminjam::where('department', $pinjam->department)
-                ->whereHas('laptop', function ($q) {
-                    $q->where('status', 'in use');
-                })
-                ->exists();
+                if (!$masihAdaAktif) {
+                    DataPeminjam::where('laptop_id', $pinjam->laptop_id)
+                        ->where('status_peminjaman', 'active')
+                        ->update(['status_peminjaman' => 'expired']);
+                }
+            });
 
-            if (!$masihAktif) {
-                $hasilStatus = 'expired';
-            }
-        });
+            $message = $statusBaru === 'diarsip' 
+                ? 'Laptop berhasil diarsipkan' 
+                : 'Status laptop berhasil diubah menjadi ' . $statusBaru;
 
-        return response()->json([
-            'success' => true,
-            'message' => 'Status laptop berhasil diubah menjadi ' . $hasilStatus,
-            'status' => $hasilStatus,
-            'adaAktif' => $masihAktif,
-        ]);
-    } catch (\Throwable $e) {
-        Log::error('updateStatus error: '.$e->getMessage(), [
-            'id' => $id,
-            'payload' => $request->all(),
-            'trace' => $e->getTraceAsString()
-        ]);
+            return response()->json([
+                'success' => true,
+                'message' => $message,
+                'status' => $statusBaru,
+            ]);
 
-        return response()->json([
-            'success' => false,
-            'error' => $e->getMessage()
-        ], 500);
+        } catch (\Throwable $e) {
+            Log::error('updateStatus error: ' . $e->getMessage(), [
+                'id' => $id,
+                'payload' => $request->all(),
+                'trace' => $e->getTraceAsString()
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Terjadi kesalahan: ' . $e->getMessage()
+            ], 500);
+        }
     }
-}
 
     public function showDetail($id)
     {
         $peminjam = DataPeminjam::with('laptop')->findOrFail($id);
 
+        // PERBAIKAN: Ambil riwayat berdasarkan laptop_id, bukan department
+        // Karena yang ingin dilihat adalah riwayat peminjaman laptop tersebut
         $riwayat = HistoriPeminjaman::with('laptop')
-            ->where('department', $peminjam->department)
+            ->where('laptop_id', $peminjam->laptop_id) // Ubah dari department ke laptop_id
             ->orderByDesc('tanggal_mulai')
             ->get();
 
         return view('content.tables.detail-peminjaman', compact('peminjam', 'riwayat'));
     }
 
+    public function updateStatusHistori(Request $request, $historyId)
+    {
+        try {
+            $riwayat = HistoriPeminjaman::findOrFail($historyId);
+            $statusBaru = $request->input('status');
+            $keterangan = $request->input('keterangan');
+
+            if (!in_array($statusBaru, ['in stock', 'diarsip'])) {
+                return response()->json(['success' => false, 'message' => 'Status tidak valid.'], 400);
+            }
+
+            if ($statusBaru === 'diarsip' && empty($keterangan)) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Keterangan wajib diisi untuk pengarsipan.'
+                ], 400);
+            }
+
+            DB::transaction(function () use ($riwayat, $statusBaru, $keterangan) {
+                if ($riwayat->laptop) {
+                    $updateData = ['status' => $statusBaru];
+
+                    if ($statusBaru === 'diarsip' && $keterangan) {
+                        $updateData['keterangan'] = $keterangan;
+                    }
+
+                    $riwayat->laptop->update($updateData);
+                }
+
+                $riwayat->update([
+                    'status' => 'selesai',
+                    'tanggal_selesai' => now(),
+                ]);
+
+                DataPeminjam::where('laptop_id', $riwayat->laptop_id)
+                    ->where('department', $riwayat->department)
+                    ->where('status_peminjaman', 'active')
+                    ->update([
+                        'status_peminjaman' => 'expired',
+                        'tanggal_selesai' => now()
+                    ]);
+            });
+
+            $message = $statusBaru === 'diarsip' 
+                ? 'Laptop berhasil diarsipkan'
+                : 'Status laptop berhasil diubah menjadi ' . $statusBaru;
+
+            return response()->json([
+                'success' => true,
+                'message' => $message,
+            ]);
+
+        } catch (\Throwable $e) {
+            Log::error('updateStatusHistori error: ' . $e->getMessage(), [
+                'historyId' => $historyId,
+                'payload' => $request->all(),
+                'trace' => $e->getTraceAsString()
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Terjadi kesalahan: ' . $e->getMessage()
+            ], 500);
+        }
+    }
 }

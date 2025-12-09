@@ -51,11 +51,31 @@
       </div>
 
       {{-- Status Laptop --}}
-      <div class="mb-3">
-        <label class="form-label fw-semibold">Status</label>
-        <input type="text" class="form-control" value="Tersedia" readonly>
-        <input type="hidden" name="status" value="tersedia">
-      </div>
+        <div class="mb-3">
+          <label class="form-label fw-semibold">Status</label>
+          <select name="status" class="form-select" id="statusSelect" required>
+            <option value="">-- Pilih Status --</option>
+            <option value="in stock" selected>In Stock</option>
+            <option value="diarsip">Diarsip</option>
+          </select>
+        </div>
+
+        {{-- Keterangan (muncul jika pilih Diarsip) --}}
+        <div class="mb-3" id="keteranganDiv" style="display: none;">
+          <label class="form-label fw-semibold">Keterangan Arsip</label>
+          <textarea name="keterangan" class="form-control" rows="3" placeholder="Masukkan alasan pengarsipan..."></textarea>
+        </div>
+
+        <script>
+        document.getElementById('statusSelect').addEventListener('change', function() {
+          const keteranganDiv = document.getElementById('keteranganDiv');
+          if (this.value === 'diarsip') {
+            keteranganDiv.style.display = 'block';
+          } else {
+            keteranganDiv.style.display = 'none';
+          }
+        });
+        </script>
 
       <div class="mb-3">
         <label class="form-label fw-semibold">Foto Laptop</label>
