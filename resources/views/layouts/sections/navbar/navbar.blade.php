@@ -106,9 +106,7 @@ $userEmail = $ldapUser['mail'] ?? Auth::user()->email ?? '';
 </nav>
 
 <!-- Theme Toggle & Dropdown Script -->
-<!-- Theme Toggle & Dropdown Script -->
 <script data-navigate-once="navbar-scripts">
-// ✅ Function untuk initialize navbar functionality
 function initializeNavbar() {
   console.log('🔧 Initializing navbar...');
   
@@ -178,13 +176,11 @@ function initializeNavbar() {
   const dropdownMenu = document.querySelector('.dropdown-user .dropdown-menu');
 
   if (dropdownToggle && dropdownMenu) {
-    // Remove old listeners dengan clone
     const newDropdownToggle = dropdownToggle.cloneNode(true);
     dropdownToggle.parentNode.replaceChild(newDropdownToggle, dropdownToggle);
     
     const newDropdownMenu = document.querySelector('.dropdown-user .dropdown-menu');
     
-    // Toggle dropdown on click
     document.querySelector('.dropdown-user .dropdown-toggle').addEventListener('click', function(e) {
       e.preventDefault();
       e.stopPropagation();
@@ -192,12 +188,10 @@ function initializeNavbar() {
       const menu = document.querySelector('.dropdown-user .dropdown-menu');
       const isShown = menu.classList.contains('show');
       
-      // Close all other dropdowns first
       document.querySelectorAll('.dropdown-menu.show').forEach(m => {
         m.classList.remove('show');
       });
       
-      // Toggle current dropdown
       if (!isShown) {
         menu.classList.add('show');
       }
@@ -205,7 +199,6 @@ function initializeNavbar() {
       console.log('👤 Dropdown toggled:', !isShown);
     });
 
-    // Close dropdown when clicking outside
     const closeDropdownOutside = function(e) {
       const toggle = document.querySelector('.dropdown-user .dropdown-toggle');
       const menu = document.querySelector('.dropdown-user .dropdown-menu');
@@ -215,12 +208,9 @@ function initializeNavbar() {
       }
     };
     
-    // Remove old listener
     document.removeEventListener('click', closeDropdownOutside);
-    // Add new listener
     document.addEventListener('click', closeDropdownOutside);
 
-    // Prevent dropdown from closing when clicking inside
     newDropdownMenu.addEventListener('click', function(e) {
       e.stopPropagation();
     });
@@ -229,14 +219,12 @@ function initializeNavbar() {
   console.log('✅ Navbar initialized!');
 }
 
-// ✅ Initialize on first load
 if (document.readyState === 'loading') {
   document.addEventListener('DOMContentLoaded', initializeNavbar);
 } else {
   initializeNavbar();
 }
 
-// ✅ Reinitialize after Livewire navigation
 document.addEventListener('livewire:navigated', function() {
   console.log('🔄 Livewire navigated - reinitializing navbar...');
   setTimeout(initializeNavbar, 50);

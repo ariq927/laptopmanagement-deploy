@@ -41,9 +41,12 @@
         </div>
       </div>
 
+      <input type="hidden" id="kode_pegawai" name="kode_pegawai">
+
       <div class="mb-3">
-        <label class="form-label">Kode Pegawai</label>
-        <input type="text" id="nomor_telepon" name="nomor_telepon" class="form-control" readonly>
+        <label class="form-label">Unit</label>
+        <input type="text" id="unit_display" class="form-control" readonly>
+        <input type="hidden" id="unit" name="unit">
       </div>
 
       <div class="mb-3">
@@ -104,11 +107,12 @@ $(document).ready(function() {
         
         return {
           results: data.data.map(emp => ({
-            id: emp.employeeCode || '-',
-            text: emp.employeeName || '-',
-            nama: emp.employeeName || '-',
-            kode: emp.employeeCode || '-',  // Ini yang akan masuk ke kolom "Kode Pegawai"
-            department: emp.jobPositionName || '-'
+            id: emp.employeeCode,
+            text: emp.employeeName,
+            nama: emp.employeeName,
+            kode: emp.employeeCode,  
+            department: emp.jobPositionName,
+            unit: emp.jobDivisionName
           }))
         };
       },
@@ -117,7 +121,7 @@ $(document).ready(function() {
     templateResult: function (data) {
       if (data.loading) return 'Mencari...';
       if (!data.id) return data.text;
-      return $('<span>' + data.text + ' - ' + data.kode + '</span>');
+      return $('<span>' + data.text + data.kode + '</span>');
     },
     templateSelection: function (data) {
       return data.text || data.nama;
@@ -131,9 +135,11 @@ $(document).ready(function() {
     console.log('Selected data:', selected);
     
     $('#nama').val(selected.nama);
-    $('#nomor_telepon').val(selected.kode);           
+    $('#kode_pegawai').val(selected.kode);           
     $('#department').val(selected.department);
     $('#department_display').val(selected.department);
+    $('#unit').val(selected.unit);
+    $('#unit_display').val(selected.unit);
     
     $('#nama-error').addClass('d-none');
     $('#nama_select').next('.select2-container').removeClass('is-invalid');
@@ -141,14 +147,17 @@ $(document).ready(function() {
 
   $('#nama_select').on('select2:clear', function () {
     $('#nama').val('');
-    $('#nomor_telepon').val('');                      
+    $('#kode_pegawai').val('');                      
     $('#department').val('');
     $('#department_display').val('');
+    $('#unit').val('');
+    $('#unit_display').val('');
   });
 
   $('#peminjamanForm').on('submit', function(e) {
     const nama = $('#nama').val();
-    const kodePegawai = $('#nomor_telepon').val();
+    const kodePegawai = $('#kode_pegawai').val();
+    const unit = $('#unit').val();
     const department = $('#department').val();
     
     console.log('Form submit check:', { nama, kodePegawai, department });
@@ -168,6 +177,12 @@ $(document).ready(function() {
       return false;
     }
     
+    if (!unit || unit === '-') {
+      e.preventDefault();
+      alert('Unit tidak valid.');
+      return false;
+    }
+
     if (!department || department === '' || department === '-') {
       e.preventDefault();
       alert('Posisi tidak valid. Silakan pilih pegawai lagi.');

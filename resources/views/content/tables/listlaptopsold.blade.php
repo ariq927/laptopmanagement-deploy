@@ -290,7 +290,6 @@
   <!-- Card Header -->
   <div class="sold-card-header d-flex justify-content-between align-items-center">
     <h5>
-      <i class="bx bx-check-circle"></i>
       Laptop Terjual
     </h5>
     
@@ -318,12 +317,67 @@
 </div>
 
 <script>
+(function() {
+  'use strict';
+  
+  console.log('📄 Sold laptop list page loaded');
+  
   let searchTimeout = null;
 
-  // Apply filters with AJAX
+  function initializeFilters() {
+    console.log('🔄 Initializing filters...');
+    
+    const perPageFilter = document.getElementById('perPageFilter');
+    const searchInput = document.getElementById('searchInput');
+    const filterForm = document.getElementById('filterForm');
+
+    if (!perPageFilter || !searchInput || !filterForm) {
+      console.log('❌ Filter elements not found');
+      return;
+    }
+
+    if (!perPageFilter.hasAttribute('data-listener-attached')) {
+      perPageFilter.addEventListener('change', function() {
+        console.log('📊 Per page changed:', this.value);
+        applyFilters();
+      });
+      perPageFilter.setAttribute('data-listener-attached', 'true');
+    }
+    
+    if (!searchInput.hasAttribute('data-listener-attached')) {
+      searchInput.addEventListener('input', function() {
+        console.log('🔍 Search input:', this.value);
+        clearTimeout(searchTimeout);
+        searchTimeout = setTimeout(() => applyFilters(), 500);
+      });
+      searchInput.setAttribute('data-listener-attached', 'true');
+    }
+
+    if (!filterForm.hasAttribute('data-listener-attached')) {
+      filterForm.addEventListener('submit', function(e) {
+        e.preventDefault();
+        console.log('📝 Form submitted');
+        applyFilters();
+      });
+      filterForm.setAttribute('data-listener-attached', 'true');
+    }
+
+    console.log('✅ Filters initialized successfully');
+  }
+
   function applyFilters(page = 1) {
-    const perPage = document.getElementById('perPageFilter').value;
-    const search = document.getElementById('searchInput').value;
+    console.log('🔄 Applying filters, page:', page);
+    
+    const perPageFilter = document.getElementById('perPageFilter');
+    const searchInput = document.getElementById('searchInput');
+    
+    if (!perPageFilter || !searchInput) {
+      console.log('❌ Filter elements not found in applyFilters');
+      return;
+    }
+
+    const perPage = perPageFilter.value;
+    const search = searchInput.value;
 
     const params = new URLSearchParams({
       per_page: perPage,
@@ -331,17 +385,16 @@
       page: page
     });
 
-    // Show loading state
+    console.log('📦 Params:', params.toString());
+
     const container = document.getElementById('tableContainer');
     container.classList.add('table-loading');
     
-    // Create loading spinner
     const spinner = document.createElement('div');
     spinner.className = 'loading-spinner';
     spinner.id = 'loadingSpinner';
     container.appendChild(spinner);
 
-    // Fetch new data
     fetch(`{{ route('laptop.sold') }}?${params.toString()}`, {
       headers: {
         'X-Requested-With': 'XMLHttpRequest',
@@ -353,15 +406,14 @@
       return response.text();
     })
     .then(html => {
+      console.log('✅ Data loaded successfully');
       container.innerHTML = html;
       
-      // Update URL without reload
       const newUrl = `${window.location.pathname}?${params.toString()}`;
       window.history.pushState({}, '', newUrl);
-      
     })
     .catch(error => {
-      console.error('Error:', error);
+      console.error('❌ Error:', error);
       showToast('Gagal memuat data', '#ef4444');
     })
     .finally(() => {
@@ -371,52 +423,12 @@
     });
   }
 
-  // Event listeners
-  document.getElementById('perPageFilter').addEventListener('change', () => applyFilters());
-  
-  // Debounced search
-  document.getElementById('searchInput').addEventListener('input', function() {
-    clearTimeout(searchTimeout);
-    searchTimeout = setTimeout(() => applyFilters(), 500);
-  });
-
-  // Prevent form submission
-  document.getElementById('filterForm').addEventListener('submit', function(e) {
-    e.preventDefault();
-    applyFilters();
-  });
-
-  // Handle pagination clicks (delegated event)
-  document.addEventListener('click', function(e) {
-    const paginationLink = e.target.closest('.pagination a');
-    if (paginationLink) {
-      e.preventDefault();
-      const url = new URL(paginationLink.href);
-      const page = url.searchParams.get('page') || 1;
-      applyFilters(page);
-    }
-  });
-
- // Event listener khusus untuk sold table
-const soldTableContainer = document.querySelector('.sold-table');
-
-if (soldTableContainer) {
-    soldTableContainer.addEventListener('click', function(e) {
-        const row = e.target.closest('tr[data-id]');
-        if (!row) return;
-        if (e.target.closest('.pagination')) return;
-        
-        const id = row.getAttribute('data-id');
-        if (id) {
-            window.location.href = '{{ url('/laptop/sold') }}/' + id + '/detail';
-        }
-    });
-}
-
-  // Toast notification
   function showToast(message, color = "#10b981") {
     const toast = document.getElementById('toastNotification');
     const msg = document.getElementById('toastMessage');
+    
+    if (!toast || !msg) return;
+    
     msg.innerText = message;
     toast.style.background = color;
     toast.style.display = 'block';
@@ -426,5 +438,73 @@ if (soldTableContainer) {
       setTimeout(() => toast.style.display = 'none', 300);
     }, 2500);
   }
+
+  if (!window.soldListEventsAttached) {
+    console.log('🎯 Attaching global event listeners...');
+    
+    document.addEventListener('click', function(e) {
+      const paginationLink = e.target.closest('.pagination a');
+      if (paginationLink) {
+        e.preventDefault();
+        const url = new URL(paginationLink.href);
+        const page = url.searchParams.get('page') || 1;
+        console.log('📄 Pagination clicked, page:', page);
+        applyFilters(page);
+      }
+    });
+
+    document.addEventListener('click', function(e) {
+      const row = e.target.closest('tr[data-id]');
+      if (!row) return;
+      if (e.target.closest('.pagination')) return;
+      
+      const id = row.getAttribute('data-id');
+      const url = row.getAttribute('data-url');
+      
+      if (url) {
+        console.log('✅ Row clicked, navigating to:', url);
+        window.location.href = url;
+      } else if (id) {
+        console.log('✅ Row clicked, navigating to ID:', id);
+        window.location.href = '{{ url('/laptop/sold') }}/' + id + '/detail';
+      }
+    });
+    
+    window.soldListEventsAttached = true;
+    console.log('✅ Global events attached');
+  }
+
+  // ===== INITIALIZE ON PAGE LOAD =====
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', function() {
+      console.log('📄 DOM Content Loaded');
+      initializeFilters();
+    });
+  } else {
+    console.log('📄 Document already loaded');
+    initializeFilters();
+  }
+
+  document.addEventListener('livewire:navigated', function() {
+    console.log('🔄 Livewire navigated - reinitializing...');
+    
+    setTimeout(function() {
+      const perPageFilter = document.getElementById('perPageFilter');
+      const searchInput = document.getElementById('searchInput');
+      
+      if (perPageFilter && searchInput) {
+        console.log('✅ Elements found, reinitializing filters');
+        perPageFilter.removeAttribute('data-listener-attached');
+        searchInput.removeAttribute('data-listener-attached');
+        document.getElementById('filterForm')?.removeAttribute('data-listener-attached');
+        
+        initializeFilters();
+      } else {
+        console.log('❌ Elements not found after navigation');
+      }
+    }, 100);
+  });
+
+})();
 </script>
 @endsection

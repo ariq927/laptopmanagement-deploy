@@ -36,7 +36,7 @@
     color: #fff !important;
   }
 
-  #jabatanCard {
+  #detailCard {
     animation: fadeIn 0.5s ease;
   }
 
@@ -118,16 +118,29 @@
     </div>
   </div>
 
-  {{-- Chart Jabatan (Drilldown) --}}
-  <div class="dashboard-card card mt-4 d-none" id="jabatanCard">
+  {{-- Chart Detail (Jabatan & Unit) --}}
+  <div class="dashboard-card card mt-4 d-none" id="detailCard">
     <div class="card-body">
       <h5 class="card-title mb-3 fw-bold">
-        Kategori Peminjam Tahun <span id="selectedYear" class="text-info"></span>
-        <button class="btn btn-sm btn-outline-light float-end" id="closeJabatan" title="Tutup">
+        Detail Peminjaman Tahun <span id="selectedYear" class="text-info"></span>
+        <button class="btn btn-sm btn-outline-light float-end" id="closeDetail" title="Tutup">
           <i class="bx bx-x"></i>
         </button>
       </h5>
-      <div id="jabatanChart" style="min-height: 350px;"></div>
+      
+      <div class="row">
+        {{-- Donut Chart Jabatan --}}
+        <div class="col-lg-6">
+          <h6 class="text-center mb-3 fw-bold">Berdasarkan Posisi</h6>
+          <div id="jabatanChart" style="min-height: 350px;"></div>
+        </div>
+        
+        {{-- Donut Chart Unit --}}
+        <div class="col-lg-6">
+          <h6 class="text-center mb-3 fw-bold">Berdasarkan Unit</h6>
+          <div id="unitChart" style="min-height: 350px;"></div>
+        </div>
+      </div>
     </div>
   </div>
 </div>
@@ -159,6 +172,7 @@ debugLog('ApexCharts available: ' + (typeof ApexCharts !== 'undefined'));
 // Data check
 const tahunData = @json($laptopStats);
 const jabatanPerTahun = @json($jabatanPerTahun);
+const unitPerTahun = @json($unitPerTahun ?? []); 
 
 const jabatanLabels = {
   'Staf': 'Staf',
@@ -171,6 +185,7 @@ const jabatanLabels = {
 };
 
 debugLog('Tahun data length: ' + (tahunData ? tahunData.length : 0));
+debugLog('Unit data available: ' + (unitPerTahun ? 'Yes' : 'No'));
 
 function initDashboard() {
   debugLog('=== INIT DASHBOARD ===');
@@ -182,11 +197,12 @@ function initDashboard() {
     return;
   }
   
-  debugLog('✅ ApexCharts available');
+  debugLog('ApexCharts available');
   
   // Check DOM
   const yearChartEl = document.querySelector("#yearChart");
   const jabatanChartEl = document.querySelector("#jabatanChart");
+  const unitChartEl = document.querySelector("#unitChart");
   
   if (!yearChartEl) {
     debugLog('❌ #yearChart element NOT FOUND!');
@@ -194,7 +210,7 @@ function initDashboard() {
     return;
   }
   
-  debugLog('✅ #yearChart element found');
+  debugLog('#yearChart element found');
   
   // Check data
   if (!tahunData || tahunData.length === 0) {
@@ -203,13 +219,12 @@ function initDashboard() {
     return;
   }
   
-  debugLog('✅ Data OK, rendering chart...');
+  debugLog(' Data OK, rendering chart...');
   
   try {
-    // ✅ FIX: Properly check and destroy old chart
+    // Properly check and destroy old chart
     if (window.dashboardYearChart) {
       debugLog('Checking yearChart type: ' + typeof window.dashboardYearChart);
-      debugLog('Has destroy method: ' + (typeof window.dashboardYearChart.destroy === 'function'));
       
       if (typeof window.dashboardYearChart.destroy === 'function') {
         debugLog('Destroying old chart');
@@ -233,7 +248,7 @@ function initDashboard() {
           dataPointSelection: function(event, chartContext, config) {
             const tahun = tahunData[config.dataPointIndex].tahun;
             debugLog('📊 Clicked year: ' + tahun);
-            showJabatanChart(tahun);
+            showDetailCharts(tahun);
           }
         },
         toolbar: { show: true },
@@ -292,24 +307,53 @@ function initDashboard() {
     debugLog('Rendering chart...');
     window.dashboardYearChart.render();
     
-    debugLog('✅✅✅ CHART RENDERED SUCCESSFULLY!');
+    debugLog('CHART RENDERED SUCCESSFULLY!');
     
-    // Setup jabatan chart function
-    window.showJabatanChart = function(tahun) {
-      debugLog('=== SHOW JABATAN CHART: ' + tahun + ' ===');
+    window.showDetailCharts = function(tahun) {
+      debugLog('=== SHOW DETAIL CHARTS: ' + tahun + ' ===');
       
-      const rawData = jabatanPerTahun[tahun] || {};
-      const labels = Object.keys(rawData).map(key => jabatanLabels[key] || key);
-      const values = Object.values(rawData);
+      // Data Jabatan
+      const rawJabatanData = jabatanPerTahun[tahun] || {};
+      const jabatanLabelsArr = Object.keys(rawJabatanData).map(key => jabatanLabels[key] || key);
+      const jabatanValues = Object.values(rawJabatanData);
 
-      if (values.length === 0 || values.reduce((a,b) => a+b, 0) === 0) {
+      // Data Unit
+      const rawUnitData = unitPerTahun[tahun] || {};
+      const unitLabelsArr = Object.keys(rawUnitData);
+      const unitValues = Object.values(rawUnitData);
+
+      const hasJabatanData = jabatanValues.length > 0 && jabatanValues.reduce((a,b) => a+b, 0) > 0;
+      const hasUnitData = unitValues.length > 0 && unitValues.reduce((a,b) => a+b, 0) > 0;
+
+      if (!hasJabatanData && !hasUnitData) {
         alert(`Tidak ada data peminjaman untuk tahun ${tahun}`);
         return;
       }
 
       document.getElementById('selectedYear').textContent = tahun;
-      document.getElementById('jabatanCard').classList.remove('d-none');
+      document.getElementById('detailCard').classList.remove('d-none');
 
+      // Render Jabatan Chart
+      if (hasJabatanData) {
+        renderJabatanChart(jabatanLabelsArr, jabatanValues);
+      } else {
+        jabatanChartEl.innerHTML = '<p class="text-center text-white p-4">Tidak ada data jabatan</p>';
+      }
+
+      // Render Unit Chart
+      if (hasUnitData) {
+        renderUnitChart(unitLabelsArr, unitValues);
+      } else {
+        unitChartEl.innerHTML = '<p class="text-center text-white p-4">Tidak ada data unit</p>';
+      }
+
+      setTimeout(() => {
+        document.getElementById('detailCard').scrollIntoView({ behavior: 'smooth' });
+      }, 100);
+    };
+
+    // Render Jabatan Donut Chart
+    function renderJabatanChart(labels, values) {
       const total = values.reduce((a,b) => a+b, 0);
 
       const jabatanOptions = {
@@ -340,7 +384,6 @@ function initDashboard() {
         }
       };
 
-      // Properly destroy jabatan chart
       if (window.dashboardJabatanChart && typeof window.dashboardJabatanChart.destroy === 'function') {
         window.dashboardJabatanChart.destroy();
         debugLog('🗑️ Jabatan chart destroyed');
@@ -353,21 +396,67 @@ function initDashboard() {
       } catch(e) {
         debugLog('❌ Jabatan chart error: ' + e.message);
       }
+    }
 
-      setTimeout(() => {
-        document.getElementById('jabatanCard').scrollIntoView({ behavior: 'smooth' });
-      }, 100);
-    };
+    // Render Unit Donut Chart
+    function renderUnitChart(labels, values) {
+      const total = values.reduce((a,b) => a+b, 0);
 
-    // Close button
-    const closeBtn = document.getElementById('closeJabatan');
+      const unitOptions = {
+        series: values,
+        chart: { type: 'donut', height: 350 },
+        labels: labels,
+        colors: ['#A29BFE', '#FD79A8', '#FDCB6E', '#6C5CE7', '#00B894', '#FF7675', '#74B9FF', '#55EFC4'],
+        legend: { position: 'bottom', labels: { colors: '#fff' } },
+        dataLabels: { enabled: true, style: { colors: ['#000'], fontWeight: 'bold' } },
+        tooltip: { theme: 'dark', y: { formatter: val => val + ' orang' } },
+        plotOptions: {
+          pie: {
+            donut: {
+              size: '65%',
+              labels: {
+                show: true,
+                total: {
+                  show: true,
+                  label: 'Total',
+                  color: '#fff',
+                  fontSize: '16px',
+                  fontWeight: 'bold',
+                  formatter: () => total
+                }
+              }
+            }
+          }
+        }
+      };
+
+      if (window.dashboardUnitChart && typeof window.dashboardUnitChart.destroy === 'function') {
+        window.dashboardUnitChart.destroy();
+        debugLog('🗑️ Unit chart destroyed');
+      }
+      
+      try {
+        window.dashboardUnitChart = new ApexCharts(unitChartEl, unitOptions);
+        window.dashboardUnitChart.render();
+        debugLog('✅ Unit chart rendered');
+      } catch(e) {
+        debugLog('❌ Unit chart error: ' + e.message);
+      }
+    }
+
+    const closeBtn = document.getElementById('closeDetail');
     if (closeBtn) {
       closeBtn.onclick = function() {
-        debugLog('Closing jabatan chart');
-        document.getElementById('jabatanCard').classList.add('d-none');
+        debugLog('Closing detail charts');
+        document.getElementById('detailCard').classList.add('d-none');
+        
         if (window.dashboardJabatanChart && typeof window.dashboardJabatanChart.destroy === 'function') {
           window.dashboardJabatanChart.destroy();
           window.dashboardJabatanChart = null;
+        }
+        if (window.dashboardUnitChart && typeof window.dashboardUnitChart.destroy === 'function') {
+          window.dashboardUnitChart.destroy();
+          window.dashboardUnitChart = null;
         }
       };
     }

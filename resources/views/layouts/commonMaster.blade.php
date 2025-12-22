@@ -156,13 +156,11 @@
       // Scroll to top
       window.scrollTo({ top: 0, behavior: 'smooth' });
       
-      // ✅ OPTIMIZE: Only reinitialize what's needed
       requestAnimationFrame(() => {
         initializePlugins();
       });
     });
 
-    // ✅ Centralized plugin initialization
     function initializePlugins() {
       console.log('🔧 Initializing plugins...');
       

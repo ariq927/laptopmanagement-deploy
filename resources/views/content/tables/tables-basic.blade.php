@@ -174,104 +174,173 @@
 </div>
 
 <script>
+// PREVENT MULTIPLE INITIALIZATION
+if (!window.peminjamTableInitialized) {
+  window.peminjamTableInitialized = true;
+
 (function() {
   'use strict';
 
   let pendingArchiveId = null;
   let searchTimeout = null;
 
-  // Prevent double initialization
-  if (window.tableBasicInitialized) return;
-  window.tableBasicInitialized = true;
+  console.log('✅ Peminjam table script loaded ONCE');
 
-  // Handle filter changes
+  // ===== FUNGSI INISIALISASI FILTERS =====
+  function initializeFilters() {
+    console.log('🔄 Initializing peminjam filters...');
+    
+    const statusFilter = document.getElementById('statusFilter');
+    const perPageFilter = document.getElementById('perPageFilter');
+    const searchInput = document.getElementById('searchInput');
+    const filterForm = document.getElementById('filterForm');
+
+    if (!statusFilter || !perPageFilter || !searchInput || !filterForm) {
+      console.log('⚠️ Filter elements not found, skipping...');
+      return;
+    }
+
+    const newStatus = statusFilter.cloneNode(true);
+    const newPerPage = perPageFilter.cloneNode(true);
+    const newSearch = searchInput.cloneNode(true);
+    const newForm = filterForm.cloneNode(true);
+    
+    statusFilter.parentNode.replaceChild(newStatus, statusFilter);
+    perPageFilter.parentNode.replaceChild(newPerPage, perPageFilter);
+    searchInput.parentNode.replaceChild(newSearch, searchInput);
+    filterForm.parentNode.replaceChild(newForm, filterForm);
+
+    // Attach fresh listeners
+    document.getElementById('statusFilter').addEventListener('change', function() {
+      console.log('📊 Status filter changed:', this.value);
+      applyFilters();
+    });
+    
+    document.getElementById('perPageFilter').addEventListener('change', function() {
+      console.log('📊 Per page changed:', this.value);
+      applyFilters();
+    });
+    
+    document.getElementById('searchInput').addEventListener('input', function() {
+      console.log('🔍 Search input:', this.value);
+      clearTimeout(searchTimeout);
+      searchTimeout = setTimeout(() => applyFilters(), 500);
+    });
+
+    document.getElementById('filterForm').addEventListener('submit', function(e) {
+      e.preventDefault();
+      console.log('📝 Form submitted');
+      applyFilters();
+    });
+
+    console.log('✅ Peminjam filters initialized');
+  }
+
+  // ===== APPLY FILTERS DENGAN AJAX =====
   function applyFilters(page = 1) {
-    const statusFilter = document.getElementById('statusFilter').value;
-    const perPage = document.getElementById('perPageFilter').value;
-    const search = document.getElementById('searchInput').value;
+    console.log('🔄 Applying filters, page:', page);
+    
+    const statusFilter = document.getElementById('statusFilter');
+    const perPageFilter = document.getElementById('perPageFilter');
+    const searchInput = document.getElementById('searchInput');
+    
+    if (!statusFilter || !perPageFilter || !searchInput) {
+      console.log('❌ Filter elements not found');
+      return;
+    }
 
     const params = new URLSearchParams({
-      status_filter: statusFilter,
-      per_page: perPage,
-      search: search,
+      status_filter: statusFilter.value,
+      per_page: perPageFilter.value,
+      search: searchInput.value,
       page: page
     });
 
-    // Show loading state
+    const requestUrl = `{{ route('peminjaman.index') }}?${params.toString()}`;
+    console.log('📦 Request URL:', requestUrl);
+
+    // Show loading
     const container = document.getElementById('tableContainer');
     container.classList.add('table-loading');
     
-    // Create loading spinner
     const spinner = document.createElement('div');
     spinner.className = 'loading-spinner';
     spinner.id = 'loadingSpinner';
     container.appendChild(spinner);
 
-    // Fetch new data
-    fetch(`{{ route('peminjaman.index') }}?${params.toString()}`, {
+    // Fetch data
+    fetch(requestUrl, {
       headers: {
-        'X-Requested-With': 'XMLHttpRequest'
+        'X-Requested-With': 'XMLHttpRequest',
+        'Accept': 'text/html',
+        'X-CSRF-TOKEN': '{{ csrf_token() }}'
       }
     })
-    .then(response => response.text())
+    .then(response => {
+      console.log('📡 Response status:', response.status);
+      
+      if (!response.ok) {
+        return response.text().then(text => {
+          console.error('❌ Server error response:', text.substring(0, 500));
+          throw new Error(`Server Error ${response.status}`);
+        });
+      }
+      return response.text();
+    })
     .then(html => {
-      // Parse the response and extract table content
+      console.log('✅ Data loaded, length:', html.length);
+      
       const parser = new DOMParser();
       const doc = parser.parseFromString(html, 'text/html');
       const newContent = doc.getElementById('tableContent');
       
       if (newContent) {
+        console.log('✅ Table content found and updated');
         document.getElementById('tableContent').innerHTML = newContent.innerHTML;
         
-        // Update URL without reload
+        // Update URL
         const newUrl = `${window.location.pathname}?${params.toString()}`;
         window.history.pushState({}, '', newUrl);
+      } else {
+        console.error('❌ tableContent not found in response');
+        console.log('📄 Response preview:', html.substring(0, 500));
+        showToast('Format response tidak valid', '#ef4444');
       }
     })
     .catch(error => {
-      console.error('Error:', error);
-      showToast('Gagal memuat data', '#ef4444');
+      console.error('❌ Fetch Error:', error);
+      showToast('Gagal memuat data: ' + error.message, '#ef4444');
     })
     .finally(() => {
-      // Remove loading state
       container.classList.remove('table-loading');
       const spinnerEl = document.getElementById('loadingSpinner');
       if (spinnerEl) spinnerEl.remove();
     });
   }
 
-  // Event listeners for filters
-  document.getElementById('statusFilter').addEventListener('change', () => applyFilters());
-  document.getElementById('perPageFilter').addEventListener('change', () => applyFilters());
-  
-  // Debounced search
-  document.getElementById('searchInput').addEventListener('input', function() {
-    clearTimeout(searchTimeout);
-    searchTimeout = setTimeout(() => applyFilters(), 500);
-  });
-
-  // Prevent form submission
-  document.getElementById('filterForm').addEventListener('submit', function(e) {
-    e.preventDefault();
-    applyFilters();
-  });
-
-  // Handle pagination clicks
+  // ===== PAGINATION (DELEGATED) =====
   document.addEventListener('click', function(e) {
-    if (e.target.matches('.pagination a')) {
+    const paginationLink = e.target.closest('.pagination a');
+    if (paginationLink) {
       e.preventDefault();
-      const url = new URL(e.target.href);
+      const url = new URL(paginationLink.href);
       const page = url.searchParams.get('page') || 1;
+      console.log('📄 Pagination clicked:', page);
       applyFilters(page);
     }
   });
 
-  // Toggle dropdown function (global)
+  // ===== DROPDOWN FUNCTIONS =====
   window.toggleDropdown = function(btn, id) {
-    if (event) event.stopPropagation();
+    const e = event || window.event;
+    if (e) e.stopPropagation();
 
-    const dropdown = btn.nextElementSibling;
-    if (!dropdown) return;
+    const dropdown = document.querySelector(`.status-dropdown[data-owner="${id}"]`);
+    
+    if (!dropdown) {
+      console.error('Dropdown not found for id:', id);
+      return;
+    }
 
     if (dropdown.classList.contains('show')) {
       dropdown.classList.remove('show');
@@ -282,7 +351,6 @@
 
     const btnWidth = btn.getBoundingClientRect().width;
     dropdown.style.minWidth = btnWidth + 'px';
-
     dropdown.classList.add('show');
 
     const rect = dropdown.getBoundingClientRect();
@@ -298,6 +366,7 @@
     document.querySelectorAll('.status-dropdown').forEach(el => el.classList.remove('show'));
   }
 
+  // ===== MODAL FUNCTIONS =====
   window.openArchiveModal = function(id) {
     closeDropdowns();
     pendingArchiveId = id;
@@ -321,7 +390,8 @@
     closeArchiveModal();
   };
 
-  function updateStatus(id, status, keterangan = null) {
+  // ===== UPDATE STATUS =====
+  window.updateStatus = function(id, status, keterangan = null) {
     closeDropdowns();
     
     const body = { status };
@@ -345,15 +415,18 @@
         return;
       }
       showToast(data.message || 'Status berhasil diperbarui');
-      // Refresh table instead of full reload
       applyFilters();
     })
     .catch(() => showToast('Terjadi kesalahan jaringan', '#ef4444'));
-  }
+  };
 
+  // ===== TOAST =====
   function showToast(message, color = "#10b981") {
     const toast = document.getElementById('toastNotification');
     const msg = document.getElementById('toastMessage');
+    
+    if (!toast || !msg) return;
+    
     msg.innerText = message;
     toast.style.background = color;
     toast.style.display = 'block';
@@ -364,40 +437,55 @@
     }, 2500);
   }
 
-  // Close dropdowns when clicking outside
+  // ===== CLOSE DROPDOWNS ON CLICK =====
   document.addEventListener('click', function(e) {
     const noNav = e.target.closest('.no-nav') || e.target.closest('.status-dropdown');
     if (!noNav) closeDropdowns();
   });
 
-  // Handle row clicks for detail view - ONLY for peminjaman table
+  // ===== ROW CLICK (DELEGATED) =====
   document.addEventListener('click', function(e) {
     const row = e.target.closest('tr[data-id]');
     if (!row) return;
     
-    // Skip if clicking on action buttons or dropdowns
     if (e.target.closest('.no-nav') || e.target.closest('.status-dropdown')) return;
-    
-    // Skip if this is a sold laptop table
     if (row.closest('.sold-table')) return;
     
     const id = row.getAttribute('data-id');
     if (id) {
+      console.log('✅ Row clicked:', id);
       window.location.href = '{{ url('/') }}/peminjaman/' + id; 
     }
   });
 
-  // Close modal when clicking outside
-  document.getElementById('archiveModal').addEventListener('click', function(e) {
-    if (e.target === this) {
-      closeArchiveModal();
-    }
+  // ===== MODAL OUTSIDE CLICK =====
+  const archiveModal = document.getElementById('archiveModal');
+  if (archiveModal) {
+    archiveModal.addEventListener('click', function(e) {
+      if (e.target === this) closeArchiveModal();
+    });
+  }
+
+  // ===== INITIALIZE =====
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initializeFilters);
+  } else {
+    initializeFilters();
+  }
+
+  // ===== LIVEWIRE SUPPORT =====
+  document.addEventListener('livewire:navigated', function() {
+    console.log('🔄 Livewire navigated');
+    setTimeout(initializeFilters, 100);
   });
 
-  // Re-initialize after Livewire navigation (if using Livewire)
-  document.addEventListener('livewire:navigated', function() {
-    console.log('Livewire navigated - table events ready');
+  document.addEventListener('livewire:load', function() {
+    console.log('🔄 Livewire loaded');
+    setTimeout(initializeFilters, 100);
   });
+
 })();
+
+} // END if (!window.peminjamTableInitialized)
 </script>
 @endsection

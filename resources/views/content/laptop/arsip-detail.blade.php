@@ -256,7 +256,6 @@
 {{-- SCRIPT SWEETALERT2 + LOGIC DI SINI (PASTI TERMUAT) --}}
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
-    // Edit Keterangan
     document.getElementById('btn-edit-ket').addEventListener('click', function() {
         document.getElementById('keterangan-display').style.display = 'none';
         document.getElementById('keterangan-edit').style.display = 'block';

@@ -13,7 +13,11 @@
     </thead>
     <tbody>
       @foreach($soldLaptops as $index => $laptop)
-      <tr data-id="{{ $laptop->id }}">
+      <tr class="clickable-row" 
+          data-id="{{ $laptop->id }}" 
+          data-url="{{ route('laptop.sold.detail', $laptop->id) }}" 
+          style="cursor: pointer;">
+        
         <!-- Nomor -->
         <td style="text-align: center; font-weight: 600; color: #64748b;">
           {{ $soldLaptops->firstItem() + $index }}
@@ -118,3 +122,18 @@
   <p>Data laptop yang sudah terjual akan ditampilkan di sini</p>
 </div>
 @endif
+
+<style>
+.clickable-row {
+  transition: background-color 0.2s ease, transform 0.1s ease;
+}
+
+.clickable-row:hover {
+  background-color: rgba(20, 162, 186, 0.08) !important;
+  transform: translateX(2px);
+}
+
+.clickable-row:active {
+  transform: translateX(0);
+}
+</style>

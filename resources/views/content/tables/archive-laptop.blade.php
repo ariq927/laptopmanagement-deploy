@@ -116,46 +116,12 @@
   }
 </style>
 
-<div id="restoreModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.7); z-index:9999; backdrop-filter:blur(5px);">
-  <div style="position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); background:linear-gradient(135deg, #14a2ba 0%, #0d7a8e 100%); padding:30px; border-radius:15px; box-shadow:0 10px 40px rgba(0,0,0,0.5); min-width:450px; border:2px solid rgba(255,255,255,0.2);">
-    <h4 style="color:#fff; margin-bottom:20px; text-align:center; font-weight:bold; text-shadow:2px 2px 4px rgba(0,0,0,0.3);">Kembalikan Laptop</h4>
-    <div style="background:rgba(255,255,255,0.1); padding:15px; border-radius:8px; margin-bottom:20px;">
-      <p style="color:#fff; margin:0; font-size:14px; line-height:1.6;">
-        <strong>Kode:</strong> <span id="modalKode"></span><br>
-        <strong>Laptop:</strong> <span id="modalLaptop"></span><br>
-        <strong>Keterangan:</strong> <span id="modalKeterangan"></span>
-      </p>
-    </div>
-    <p style="color:#fff; margin-bottom:20px; opacity:0.9; text-align:center;">Apakah kamu yakin ingin mengembalikan laptop ini dari arsip?</p>
-    <div style="display:flex; gap:10px; justify-content:center;">
-      <button id="btnCancelRestore" type="button" style="padding:10px 25px; border:none; border-radius:8px; font-weight:600; cursor:pointer; background:rgba(255,255,255,0.2); color:#fff; border:1px solid rgba(255,255,255,0.3);">Batal</button>
-      <button id="btnConfirmRestore" type="button" style="padding:10px 25px; border:none; border-radius:8px; font-weight:600; cursor:pointer; background:linear-gradient(135deg, #22c55e 0%, #16a34a 100%); color:#fff;">Ya, Kembalikan</button>
-    </div>
-  </div>
-</div>
-
 <div id="toastNotification" style="position:fixed; top:20px; right:20px; min-width:300px; background:linear-gradient(135deg, #10b981 0%, #059669 100%); color:#fff; padding:15px 20px; border-radius:10px; box-shadow:0 8px 25px rgba(0,0,0,0.3); z-index:10000; display:none; transform:translateX(400px); transition:transform 0.3s ease; border:2px solid rgba(255,255,255,0.2);">
   <div style="display:flex; align-items:center; gap:12px;">
     <span style="font-size:24px;">✓</span>
     <span id="toastMessage" style="font-weight:bold; font-size:14px;"></span>
   </div>
 </div>
-
-@if(session('success'))
-<script>
-  document.addEventListener('DOMContentLoaded', function() {
-    showToast("✓ {{ session('success') }}", "#10b981");
-  });
-</script>
-@endif
-
-@if(session('error'))
-<script>
-  document.addEventListener('DOMContentLoaded', function() {
-    showToast("✗ {{ session('error') }}", "#ef4444");
-  });
-</script>
-@endif
 
 <div class="card mb-4" style="background-color: {{ $cardBgColor }}; backdrop-filter: blur(10px); border:1px solid {{ $borderColor }};">
     {{-- Header --}}
@@ -193,10 +159,25 @@
   'use strict';
   
   console.log('📄 Arsip page script loaded');
+  
+  console.log('🛑 BLOCKING initLaptopTable infinite loop...');
+  
+  window.initLaptopTable = function() {
+    console.log('❌ initLaptopTable BLOCKED on arsip page');
+    return false;
+  };
+  
+  const highestTimeoutId = setTimeout(';');
+  for (let i = 0; i < highestTimeoutId; i++) {
+    clearTimeout(i);
+  }
+  clearTimeout(highestTimeoutId);
+  
+  console.log('✅ Cleared all pending timeouts');
+  // ===== END KILL INFINITE LOOP =====
 
   let searchTimeout = null;
 
-  // ✅ Apply filters with AJAX
   function applyFilters(page = 1) {
     const perPage = document.getElementById('perPageFilter')?.value || 10;
     const search = document.getElementById('searchInput')?.value || '';
@@ -208,7 +189,20 @@
     });
 
     const container = document.getElementById('tableContainer');
-    if (!container) return;
+    if (!container) {
+      console.log('❌ Table container not found');
+      return;
+    }
+
+     🔑 SAVE selection mode state before reload
+    const wasInSelectionMode = window.arsipTableSelectionMode || false;
+    const currentSelectionsArray = window.selectedLaptopsGlobal ? Array.from(window.selectedLaptopsGlobal) : [];
+    
+    console.log('💾 Saving state before AJAX:', { 
+      selectionMode: wasInSelectionMode, 
+      selectedCount: currentSelectionsArray.length,
+      selectedIds: currentSelectionsArray
+    });
 
     container.classList.add('table-loading');
     
@@ -226,14 +220,61 @@
       const doc = parser.parseFromString(html, 'text/html');
       const newContent = doc.getElementById('tableContent');
       
-      if (newContent) {
-        document.getElementById('tableContent').innerHTML = newContent.innerHTML;
-        
-        const newUrl = `${window.location.pathname}?${params.toString()}`;
-        window.history.pushState({}, '', newUrl);
-        
+      const currentContent = document.getElementById('tableContent');
+      
+      if (newContent && currentContent) {
+        currentContent.innerHTML = newContent.innerHTML;
         console.log('✅ Table content updated');
+      } else {
+        console.log('⚠️ tableContent not found, trying full container');
+        const newContainer = doc.getElementById('tableContainer');
+        if (newContainer) {
+          container.innerHTML = newContainer.innerHTML;
+          console.log('✅ Full container updated');
+        } else {
+          console.error('❌ Could not find content to update');
+          throw new Error('Content not found in response');
+        }
       }
+      
+      if (wasInSelectionMode) {
+        console.log('🔄 Restoring selection mode...');
+        console.log('📦 Saved selections to restore:', currentSelectionsArray);
+        
+        setTimeout(() => {
+          window.selectedLaptopsGlobal = new Set(currentSelectionsArray);
+          window.arsipTableSelectionMode = true;
+          
+          console.log('🔧 Re-initialized global state:', {
+            selectedCount: window.selectedLaptopsGlobal.size,
+            selectedIds: Array.from(window.selectedLaptopsGlobal)
+          });
+          
+          window.arsipTableInitialized = false;
+          
+          if (typeof window.initializeTable === 'function') {
+            console.log('🔄 Calling initializeTable...');
+            window.initializeTable();
+            console.log('✅ Selection mode restored with', window.selectedLaptopsGlobal.size, 'selections');
+          } else {
+            console.error('❌ initializeTable function not found!');
+          }
+          
+          if (typeof window.updateBulkActionBar === 'function') {
+            console.log('🔄 Updating bulk action bar...');
+            window.updateBulkActionBar();
+          }
+        }, 150);
+      }
+      
+      const newUrl = `${window.location.pathname}?${params.toString()}`;
+      window.history.pushState({}, '', newUrl);
+      
+      console.log('🎯 AJAX Complete - Final Check:', {
+        globalSize: window.selectedLaptopsGlobal?.size,
+        globalIds: window.selectedLaptopsGlobal ? Array.from(window.selectedLaptopsGlobal) : [],
+        selectionModeActive: window.arsipTableSelectionMode
+      });
     })
     .catch(error => {
       console.error('Error:', error);
@@ -279,44 +320,48 @@
       .toString(16).slice(1);
   }
 
-  // ✅ Initialize page controls (filters, pagination, modals)
   function initPageControls() {
     console.log('🔧 Initializing page controls...');
 
-    // Filter listeners
     const perPageFilter = document.getElementById('perPageFilter');
     const searchInput = document.getElementById('searchInput');
     const filterForm = document.getElementById('filterForm');
+    
+    if (!perPageFilter || !searchInput || !filterForm) {
+      console.log('❌ Filter elements not found');
+      return;
+    }
 
-    if (perPageFilter && !perPageFilter.hasAttribute('data-listener-attached')) {
+    if (!perPageFilter.hasAttribute('data-listener-attached')) {
       perPageFilter.addEventListener('change', () => applyFilters());
       perPageFilter.setAttribute('data-listener-attached', 'true');
+      console.log('✅ Per page filter attached');
     }
     
-    if (searchInput && !searchInput.hasAttribute('data-listener-attached')) {
+    if (!searchInput.hasAttribute('data-listener-attached')) {
       searchInput.addEventListener('input', function() {
         clearTimeout(searchTimeout);
         searchTimeout = setTimeout(() => applyFilters(), 500);
       });
       searchInput.setAttribute('data-listener-attached', 'true');
+      console.log('✅ Search input attached');
     }
 
-    if (filterForm && !filterForm.hasAttribute('data-listener-attached')) {
+    if (!filterForm.hasAttribute('data-listener-attached')) {
       filterForm.addEventListener('submit', function(e) {
         e.preventDefault();
         applyFilters();
       });
       filterForm.setAttribute('data-listener-attached', 'true');
+      console.log('Filter form attached');
     }
 
-    console.log('✅ Page controls initialized');
+    console.log('Page controls initialized');
   }
 
-  // ✅ GLOBAL EVENT DELEGATION - Persistent across Livewire navigation
   if (!window.arsipPageInitialized) {
     console.log('🎯 Setting up global event delegation...');
 
-    // Handle pagination
     document.addEventListener('click', function(e) {
       if (e.target.matches('.pagination a')) {
         e.preventDefault();
@@ -326,93 +371,89 @@
       }
     });
 
-    // Handle modal buttons
-    document.addEventListener('click', function(e) {
-      const modal = document.getElementById('restoreModal');
-      if (!modal) return;
-
-      // Batal button
-      if (e.target.id === 'btnCancelRestore' || e.target.closest('#btnCancelRestore')) {
-        e.preventDefault();
-        e.stopPropagation();
-        console.log('❌ Cancel restore');
-        modal.style.display = 'none';
-        return;
-      }
-      
-      // Confirm button
-      if (e.target.id === 'btnConfirmRestore' || e.target.closest('#btnConfirmRestore')) {
-        e.preventDefault();
-        e.stopPropagation();
-        console.log('✅ Confirm restore');
-        
-        const btn = document.getElementById('btnConfirmRestore');
-        const laptopId = btn.getAttribute('data-laptop-id');
-        
-        if (!laptopId) {
-          console.error('❌ Laptop ID not found');
-          return;
-        }
-        
-        btn.disabled = true;
-        btn.textContent = 'Memproses...';
-        
-        fetch(`/laptop/restore/${laptopId}`, {
-          method: 'POST',
-          headers: {
-            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
-            'Accept': 'application/json',
-            'X-Requested-With': 'XMLHttpRequest'
-          }
-        })
-        .then(response => response.json())
-        .then(data => {
-          modal.style.display = 'none';
-          
-          if (data.success) {
-            showToast(data.message || 'Laptop berhasil dikembalikan!', '#10b981');
-            setTimeout(() => applyFilters(), 1000);
-          } else {
-            showToast(data.message || 'Gagal mengembalikan laptop', '#ef4444');
-          }
-        })
-        .catch(error => {
-          console.error('Error:', error);
-          modal.style.display = 'none';
-          showToast('Terjadi kesalahan', '#ef4444');
-        })
-        .finally(() => {
-          btn.disabled = false;
-          btn.textContent = 'Ya, Kembalikan';
-        });
-        
-        return;
-      }
-      
-      // Close on backdrop click
-      if (e.target.id === 'restoreModal') {
-        e.target.style.display = 'none';
-      }
-    });
-
     window.arsipPageInitialized = true;
     console.log('✅ Global event delegation setup complete');
   }
 
-  // Make functions globally available
   window.applyFilters = applyFilters;
   window.showToast = showToast;
 
-  // ✅ Initialize on first load
   initPageControls();
+  
+  function setupSelectionButton() {
+    const selectionModeBtn = document.getElementById('selectionModeBtn');
+    
+    if (!selectionModeBtn) {
+      console.log('❌ Selection mode button not found');
+      return;
+    }
+    
+    if (selectionModeBtn.hasAttribute('data-listener-attached')) {
+      console.log('🔄 Re-attaching selection button listener');
+      const newBtn = selectionModeBtn.cloneNode(true);
+      selectionModeBtn.parentNode.replaceChild(newBtn, selectionModeBtn);
+    }
+    
+    // Get fresh reference
+    const btn = document.getElementById('selectionModeBtn');
+    
+    btn.addEventListener('click', function(e) {
+      e.preventDefault();
+      e.stopPropagation();
+      
+      console.log('🎯 Selection mode button clicked!');
+      m
+      if (typeof window.initializeTable === 'function') {
+        window.initializeTable();
+      }
+      
+      const currentMode = window.arsipTableSelectionMode || false;
+      console.log('Current mode:', currentMode, '→ Will become:', !currentMode);
+      
+      if (currentMode) {
+        // Deactivate
+        if (typeof window.deactivateSelectionMode === 'function') {
+          window.deactivateSelectionMode();
+        }
+      } else {
+        // Activate
+        if (typeof window.activateSelectionMode === 'function') {
+          window.activateSelectionMode();
+        }
+      }
+    });
+    
+    btn.setAttribute('data-listener-attached', 'true');
+    console.log('✅ Selection mode button listener attached');
+  }
+  
+  setupSelectionButton();
 
-  // ✅ Re-initialize after Livewire navigation
   document.addEventListener('livewire:navigated', function() {
     console.log('🔄 Livewire navigated - reinitializing controls...');
-    initPageControls();
+    
+    window.initLaptopTable = function() {
+      console.log('❌ initLaptopTable BLOCKED on arsip page');
+      return false;
+    };
+    
+    setTimeout(function() {
+      const perPageFilter = document.getElementById('perPageFilter');
+      const searchInput = document.getElementById('searchInput');
+      
+      if (perPageFilter && searchInput) {
+        console.log('✅ Elements found, removing old listeners');
+        perPageFilter.removeAttribute('data-listener-attached');
+        searchInput.removeAttribute('data-listener-attached');
+        document.getElementById('filterForm')?.removeAttribute('data-listener-attached');
+        
+        initPageControls();
+      } else {
+        console.log('❌ Elements not found after navigation');
+      }
+    }, 100);
   });
 
-  // ✅ Show session toasts
   @if(session('success'))
     showToast("✓ {{ session('success') }}", "#10b981");
   @endif

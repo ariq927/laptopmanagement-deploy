@@ -291,8 +291,8 @@
         <p class="muted">Nama Pegawai</p>
         <p class="row-value">{{ $peminjam->nama }}</p>
         
-        <p class="muted" style="margin-top:.6rem;">Kode Pegawai</p>
-        <p class="row-value">{{ $peminjam->nomor_telepon ?? '-' }}</p>
+        <p class="muted" style="margin-top:.6rem;">Unit</p>
+        <p class="row-value">{{ $peminjam->unit ?? '-' }}</p>
 
         <p class="muted" style="margin-top:.6rem;">Jabatan</p>
         <p class="row-value">{{ $peminjam->department }}</p>

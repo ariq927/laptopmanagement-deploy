@@ -37,22 +37,24 @@ class PeminjamanNewController extends Controller
             'laptop_id' => 'required|exists:laptop_data,id',
             'nama' => 'required|string',
             'department' => 'required|string',
+            'unit' => 'nullable',
             'tanggal_mulai' => 'required|date',
             'tanggal_selesai' => 'required|date|after_or_equal:tanggal_mulai',
-            'nomor_telepon' => 'required|string',
+            'kode_pegawai' => 'required|string',
         ]);
 
-        DB::transaction(function () use ($validated, $user) {
+        DB::transaction(function () use ($validated, $user, $request) {
             $laptop = LaptopData::findOrFail($validated['laptop_id']);
 
             DataPeminjam::create([
                 'user_id' => $user->id,
                 'laptop_id' => $laptop->id,
                 'nama' => $validated['nama'],
+                'kode_pegawai' => $request->kode_pegawai,
                 'department' => $validated['department'],
+                'unit' => $validated['unit'],  
                 'tanggal_mulai' => $validated['tanggal_mulai'],
                 'tanggal_selesai' => $validated['tanggal_selesai'],
-                'nomor_telepon' => $validated['nomor_telepon'],
                 'status_peminjaman' => 'active', 
             ]);
 
@@ -61,9 +63,10 @@ class PeminjamanNewController extends Controller
                 'laptop_id' => $laptop->id,
                 'nama' => $validated['nama'],
                 'department' => $validated['department'],
+                'unit' => $validated['unit'], 
                 'tanggal_mulai' => $validated['tanggal_mulai'],
                 'tanggal_selesai' => $validated['tanggal_selesai'],
-                'nomor_telepon' => $validated['nomor_telepon'],
+                'kode_pegawai' => $request->kode_pegawai,
                 'status' => 'aktif',
             ]);
 
@@ -75,56 +78,91 @@ class PeminjamanNewController extends Controller
 
     public function index(Request $request)
     {
-        $perPage = $request->input('per_page', 10);
-        $search = $request->input('search', '');
-        $statusFilter = $request->input('status_filter', 'all');
+        try {
+            $perPage = $request->input('per_page', 10);
+            $search = $request->input('search', '');
+            $statusFilter = $request->input('status_filter', 'all');
 
-        // PERBAIKAN: Group by laptop_id, bukan department
-        // Karena yang penting adalah siapa yang sedang meminjam laptop tersebut saat ini
-        $subquery = DB::table('data_peminjam as dp')
-            ->leftJoin('laptop_data as ld', 'dp.laptop_id', '=', 'ld.id')
-            ->select('dp.laptop_id'); // Ubah dari department ke laptop_id
+            // ===== PERBAIKAN: Pisahkan query search untuk laptop =====
+            $laptopIds = [];
+            if ($search) {
+                // Cari dulu laptop yang match
+                $laptopIds = LaptopData::where('merek', 'like', "%$search%")
+                    ->orWhere('tipe', 'like', "%$search%")
+                    ->orWhere('kode', 'like', "%$search%")
+                    ->pluck('id')
+                    ->toArray();
+            }
 
-        if ($statusFilter === 'active') {
-            $subquery->where('dp.status_peminjaman', 'active')
-                ->where('ld.status', 'in use');
-        } elseif ($statusFilter === 'expired') {
-            $subquery->where(function($q) {
-                $q->where('dp.status_peminjaman', 'expired');
-            });
-        }
+            $query = DataPeminjam::fromSub(function($sub) {
+                $sub->from('data_peminjam as dp')
+                    ->select('dp.*')
+                    ->joinSub(function($subquery) {
+                        $subquery->from('data_peminjam')
+                            ->select(
+                                'kode_pegawai',
+                                DB::raw('MAX(CASE WHEN status_peminjaman = "active" THEN id END) as active_id'),
+                                DB::raw('MAX(id) as latest_id')
+                            )
+                            ->whereNotNull('kode_pegawai')
+                            ->where('kode_pegawai', '!=', '')
+                            ->whereRaw('kode_pegawai REGEXP "^[0-9]+[A-Z]?$"')
+                            ->whereRaw('LENGTH(kode_pegawai) <= 15')
+                            ->groupBy('kode_pegawai');
+                    }, 'latest', function($join) {
+                        $join->on('dp.id', '=', DB::raw('COALESCE(latest.active_id, latest.latest_id)'));
+                    });
+            }, 'peminjam_latest')
+            ->with(['laptop']);
 
-        $subquery = $subquery
-            ->selectRaw('MAX(CASE 
-                WHEN dp.status_peminjaman = "active" AND ld.status = "in use" 
-                THEN dp.id 
-            END) as active_id')
-            ->selectRaw('MAX(dp.id) as max_id')
-            ->groupBy('dp.laptop_id'); // Ubah dari department ke laptop_id
+            // Status filter
+            if ($statusFilter === 'active') {
+                $query->where('status_peminjaman', 'active');
+            } elseif ($statusFilter === 'expired') {
+                $query->where('status_peminjaman', 'expired');
+            }
 
-        $query = DataPeminjam::with('laptop')
-            ->joinSub($subquery, 'latest', function($join) {
-                $join->on('data_peminjam.laptop_id', '=', 'latest.laptop_id') // Ubah dari department ke laptop_id
-                    ->on('data_peminjam.id', '=', DB::raw('COALESCE(latest.active_id, latest.max_id)'));
-            });
-
-        if ($search) {
-            $query->where(function ($q) use ($search) {
-                $q->where('data_peminjam.nama', 'like', "%$search%")
-                ->orWhere('data_peminjam.department', 'like', "%$search%")
-                ->orWhereHas('laptop', function($laptopQuery) use ($search) {
-                    $laptopQuery->where('merek', 'like', "%$search%")
-                                ->orWhere('tipe', 'like', "%$search%")
-                                ->orWhere('kode', 'like', "%$search%");
+            // ===== PERBAIKAN: Search tanpa orWhereHas =====
+            if ($search) {
+                $query->where(function ($q) use ($search, $laptopIds) {
+                    $q->where('nama', 'like', "%$search%")
+                      ->orWhere('department', 'like', "%$search%")
+                      ->orWhere('kode_pegawai', 'like', "%$search%");
+                    
+                    // Tambahkan laptop_id yang match
+                    if (!empty($laptopIds)) {
+                        $q->orWhereIn('laptop_id', $laptopIds);
+                    }
                 });
-            });
+            }
+
+            $peminjams = $query->orderByDesc('created_at')
+                ->paginate($perPage)
+                ->withQueryString();
+
+            // ===== PERBAIKAN: Handle AJAX request =====
+            if ($request->ajax() || $request->header('X-Requested-With') === 'XMLHttpRequest') {
+                // Return partial view dengan id="tableContent" wrapper
+                return view('content.peminjaman.table-peminjam', compact('peminjams', 'search', 'perPage'));
+            }
+
+            return view('content.tables.tables-basic', compact('peminjams', 'search', 'perPage'));
+            
+        } catch (\Throwable $e) {
+            Log::error('PeminjamanController index error: ' . $e->getMessage(), [
+                'search' => $request->input('search'),
+                'status_filter' => $request->input('status_filter'),
+                'trace' => $e->getTraceAsString()
+            ]);
+
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json([
+                    'error' => 'Terjadi kesalahan saat memuat data: ' . $e->getMessage()
+                ], 500);
+            }
+
+            return back()->with('error', 'Terjadi kesalahan saat memuat data.');
         }
-
-        $peminjams = $query->orderByDesc('data_peminjam.created_at')
-            ->paginate($perPage)
-            ->withQueryString();
-
-        return view('content.tables.tables-basic', compact('peminjams', 'search', 'perPage'));
     }
     
     public function selesai($id)
@@ -248,7 +286,6 @@ class PeminjamanNewController extends Controller
                     'tanggal_selesai' => $pinjam->tanggal_selesai ?? now()
                 ]);
 
-                // PERBAIKAN: Cek berdasarkan laptop_id, bukan department
                 $masihAdaAktif = DataPeminjam::where('laptop_id', $pinjam->laptop_id)
                     ->where('status_peminjaman', 'active')
                     ->whereHas('laptop', function($q) {
@@ -291,10 +328,9 @@ class PeminjamanNewController extends Controller
     {
         $peminjam = DataPeminjam::with('laptop')->findOrFail($id);
 
-        // PERBAIKAN: Ambil riwayat berdasarkan laptop_id, bukan department
-        // Karena yang ingin dilihat adalah riwayat peminjaman laptop tersebut
+        // Ambil semua riwayat peminjaman berdasarkan kode_pegawai
         $riwayat = HistoriPeminjaman::with('laptop')
-            ->where('laptop_id', $peminjam->laptop_id) // Ubah dari department ke laptop_id
+            ->where('kode_pegawai', $peminjam->kode_pegawai)
             ->orderByDesc('tanggal_mulai')
             ->get();
 

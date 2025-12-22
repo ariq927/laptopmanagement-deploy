@@ -76,11 +76,9 @@
       return;
     }
     
-    // Clone untuk hapus listener lama
     const newToggleBtn = toggleBtn.cloneNode(true);
     toggleBtn.parentNode.replaceChild(newToggleBtn, toggleBtn);
     
-    // Add listener ke element baru
     newToggleBtn.addEventListener('click', function(e) {
       e.preventDefault();
       e.stopPropagation();

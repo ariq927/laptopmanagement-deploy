@@ -41,6 +41,7 @@ class UserDashboardController extends Controller
             END as jabatan_level
         ";
 
+        // Statistik per tahun
         $laptopStats = DB::table('histori_peminjaman')
             ->select(
                 DB::raw('YEAR(tanggal_mulai) as tahun'),
@@ -50,6 +51,7 @@ class UserDashboardController extends Controller
             ->orderBy('tahun', 'asc')
             ->get();
 
+        // Statistik jabatan per tahun
         $jabatanPerTahun = DB::table('histori_peminjaman')
             ->select(
                 DB::raw('YEAR(tanggal_mulai) as tahun'),
@@ -65,6 +67,24 @@ class UserDashboardController extends Controller
             ->groupBy('tahun')
             ->map(function ($items) {
                 return $items->pluck('total', 'jabatan_level')->toArray();
+            });
+
+        // Statistik unit per tahun
+        $unitPerTahun = DB::table('histori_peminjaman')
+            ->select(
+                DB::raw('YEAR(tanggal_mulai) as tahun'),
+                'unit',
+                DB::raw('COUNT(*) as total')
+            )
+            ->whereNotNull('unit')
+            ->where('unit', '!=', '')
+            ->where('unit', '!=', '-')
+            ->groupBy('tahun', 'unit')
+            ->orderBy('tahun')
+            ->get()
+            ->groupBy('tahun')
+            ->map(function ($items) {
+                return $items->pluck('total', 'unit')->toArray();
             });
 
         $ldapData = session('ldap_user');
@@ -99,6 +119,7 @@ class UserDashboardController extends Controller
             'pinjamanUser' => $pinjamanUser,
             'laptopStats' => $laptopStats,
             'jabatanPerTahun' => $jabatanPerTahun,
+            'unitPerTahun' => $unitPerTahun, // Tambahan data unit
         ]);
     }
 

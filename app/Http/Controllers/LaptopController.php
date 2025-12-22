@@ -98,7 +98,7 @@ class LaptopController extends Controller
             'tipe' => 'required|string|max:255',
             'spesifikasi' => 'nullable|string',
             'status' => 'required|in:in stock,in use,diarsip',
-            'foto' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+            'foto' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
             'hapus_foto' => 'nullable|in:0,1',
             'keterangan' => 'required_if:status,diarsip|string|max:500'
         ], [
@@ -108,6 +108,7 @@ class LaptopController extends Controller
         $laptop = LaptopData::findOrFail($id);
         $originalStatus = $laptop->status;
 
+        /** ================= DATA UTAMA ================= */
         $laptop->merek = $request->merek;
         $laptop->tipe = $request->tipe;
         $laptop->spesifikasi = $request->spesifikasi;
@@ -117,31 +118,42 @@ class LaptopController extends Controller
             $laptop->keterangan = $request->keterangan;
         }
 
-        if ($request->hasFile('foto')) {
-            if ($laptop->foto && file_exists(public_path($laptop->foto))) {
-                unlink(public_path($laptop->foto));
-            }
+        /** ================= CLOUDINARY ================= */
+        $cloudinary = new Cloudinary([
+            'cloud' => [
+                'cloud_name' => config('cloudinary.cloud_name'),
+                'api_key'    => config('cloudinary.api_key'),
+                'api_secret' => config('cloudinary.api_secret'),
+            ]
+        ]);
 
-            $file = $request->file('foto');
-            $filename = time() . '_' . $file->getClientOriginalName();
-            $file->move(public_path('uploads/laptop'), $filename);
-            $laptop->foto = 'uploads/laptop/' . $filename;
+        if ($request->hapus_foto == '1' && $laptop->public_id) {
+            $cloudinary->uploadApi()->destroy($laptop->public_id);
+            $laptop->foto = null;
+            $laptop->public_id = null;
         }
 
-        if ($request->hapus_foto == '1' && $laptop->foto) {
-            if (file_exists(public_path($laptop->foto))) {
-                unlink(public_path($laptop->foto));
+        if ($request->hasFile('foto')) {
+            if ($laptop->public_id) {
+                $cloudinary->uploadApi()->destroy($laptop->public_id);
             }
-            $laptop->foto = null;
+
+            $uploadResult = $cloudinary->uploadApi()->upload(
+                $request->file('foto')->getRealPath(),
+                ['folder' => 'laptops', 'resource_type' => 'image']
+            );
+
+            $laptop->foto = $uploadResult['secure_url'];
+            $laptop->public_id = $uploadResult['public_id'];
         }
 
         $laptop->save();
 
+        /** ================= RESPONSE ================= */
         if ($request->ajax() || $request->wantsJson()) {
             return response()->json([
                 'success' => true,
-                'message' => 'Status laptop berhasil diubah',
-                'redirect_to_borrow' => ($originalStatus !== 'in use' && $request->status === 'in use')
+                'message' => 'Data laptop berhasil diupdate'
             ]);
         }
 
@@ -150,7 +162,7 @@ class LaptopController extends Controller
                 ->with('info', 'Status laptop diubah. Silakan lengkapi form peminjaman.');
         }
 
-        return redirect()->route('laptop.index', $laptop->id)
+        return redirect()->route('laptop.index')
             ->with('success', 'Data laptop berhasil diupdate');
     }
 
@@ -250,7 +262,6 @@ class LaptopController extends Controller
     {
         $query = LaptopData::query();
 
-        // Filter pencarian
         if ($request->search) {
             $query->where(function($q) use ($request) {
                 $q->where('merek', 'like', "%{$request->search}%")
@@ -260,7 +271,6 @@ class LaptopController extends Controller
             });
         }
 
-        // Filter status
         if ($request->status && $request->status !== '') {
             $query->where('status', $request->status);
         }

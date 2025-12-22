@@ -817,16 +817,13 @@
 // FILTER FUNCTIONALITY - ULTIMATE FIX
 // ============================================
 
-// Global state untuk filter
 let isFilterOpen = false;
 
-// Prevent close when clicking inside menu
 filterMenu.addEventListener('click', (e) => {
   e.stopPropagation();
   console.log('📋 Clicked inside filter menu');
 });
 
-// Toggle filter button
 filterButton.addEventListener('click', function(e) {
   e.preventDefault();
   e.stopPropagation();
@@ -845,7 +842,6 @@ filterButton.addEventListener('click', function(e) {
   }
 });
 
-// Close when clicking outside
 document.addEventListener('click', function(e) {
   if (isFilterOpen) {
     const dropdown = e.target.closest('.filter-dropdown');
@@ -908,7 +904,6 @@ applyFilterBtn.addEventListener('click', function(e) {
   fetchData(1);
 });
 
-// Cancel Filter Button
 cancelFilterBtn.addEventListener('click', function(e) {
   e.stopPropagation();
   console.log('❌ Cancelling filter...');
@@ -945,7 +940,6 @@ applyFilterBtn.addEventListener('mouseleave', function() { this.style.background
 cancelFilterBtn.addEventListener('mouseenter', function() { this.style.background = '#e5e7eb'; });
 cancelFilterBtn.addEventListener('mouseleave', function() { this.style.background = '#f3f4f6'; });
 
-// Initial state
 if (statusOptions[0]) statusOptions[0].querySelector('i').style.visibility = 'visible';
 if (perPageOptions[0]) perPageOptions[0].querySelector('i').style.visibility = 'visible';
 

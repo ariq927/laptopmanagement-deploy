@@ -17,6 +17,7 @@
         <tr style="background-color: #f2f2f2; text-align: center;">
             <th>No</th>
             <th>Nama</th>
+            <th>Unit</th>
             <th>Posisi</th>
             <th>Merek Laptop</th>
             <th>Tipe Laptop</th>
@@ -31,6 +32,7 @@
             <tr>
                 <td style="text-align:center;">{{ $index + 1 }}</td>
                 <td>{{ $item->nama }}</td>
+                <td>{{ $item->unit }}</td>
                 <td>{{ $item->department }}</td>
                 <td>{{ $item->laptop->merek ?? '-' }}</td>
                 <td>{{ $item->laptop->tipe ?? '-' }}</td>

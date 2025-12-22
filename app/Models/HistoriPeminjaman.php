@@ -12,10 +12,11 @@ class HistoriPeminjaman extends Model
         'user_id',
         'laptop_id',
         'nama',
+        'kode_pegawai',
         'department',
+        'unit',
         'tanggal_mulai',
         'tanggal_selesai',
-        'nomor_telepon',
         'status',
     ];
 
