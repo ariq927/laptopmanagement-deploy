@@ -4,7 +4,7 @@
 
 @section('content')
 <div class="card">
-  <h5 class="card-header">Pinjam Laptop {{ $laptop->merek }} {{ $laptop->tipe }}</h5>
+  <h5 class="card-header">Gunakan Laptop {{ $laptop->merek }} {{ $laptop->tipe }}</h5>
   <div class="card-body">
     
     @if(session('error'))
@@ -74,7 +74,7 @@
           <i class="bx bx-arrow-back"></i> Batal
         </a>
         <button type="submit" class="btn btn-primary" id="submitBtn">
-          <i class="bx bx-save"></i> Sewa
+          <i class="bx bx-save"></i> Gunakan
         </button>
       </div>
     </form>
@@ -121,7 +121,7 @@ $(document).ready(function() {
     templateResult: function (data) {
       if (data.loading) return 'Mencari...';
       if (!data.id) return data.text;
-      return $('<span>' + data.text + data.kode + '</span>');
+      return $('<span>' + data.text + ' - ' + data.kode + '</span>');
     },
     templateSelection: function (data) {
       return data.text || data.nama;

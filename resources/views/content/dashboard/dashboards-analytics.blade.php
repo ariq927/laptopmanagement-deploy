@@ -212,7 +212,6 @@ function initDashboard() {
   
   debugLog('#yearChart element found');
   
-  // Check data
   if (!tahunData || tahunData.length === 0) {
     debugLog('❌ No data available');
     yearChartEl.innerHTML = '<p class="text-center text-white p-4">Tidak ada data</p>';
@@ -222,7 +221,6 @@ function initDashboard() {
   debugLog(' Data OK, rendering chart...');
   
   try {
-    // Properly check and destroy old chart
     if (window.dashboardYearChart) {
       debugLog('Checking yearChart type: ' + typeof window.dashboardYearChart);
       

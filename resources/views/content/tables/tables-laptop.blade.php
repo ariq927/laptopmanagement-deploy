@@ -50,219 +50,204 @@
 </div>
 
 <style>
+/* =========================
+   BASE (LIGHT MODE)
+========================= */
+.header-wrapper {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+}
+
+.header-row {
+  display: grid;
+  grid-template-columns: auto minmax(200px, 300px) auto;
+  gap: 12px;
+  align-items: center;
+}
+
+.filter-dropdown {
+  position: relative;
+  display: inline-block;
+  z-index: 99998 !important;
+}
+
+/* FILTER BUTTON */
+.filter-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  background: rgba(255,255,255,0.9);
+  border: 1px solid #14a2ba;
+  border-radius: 8px;
+  color: #111;
+  font-weight: 600;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.filter-button:hover {
+  background: #ffffff;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+/* FILTER MENU */
+.filter-menu {
+  display: none;
+  position: absolute;
+  top: calc(100% + 4px);
+  right: 0;
+  background: #ffffff;
+  border: 1px solid #14a2ba;
+  border-radius: 10px;
+  box-shadow: 0 6px 20px rgba(0,0,0,0.2);
+  min-width: 220px;
+  max-height: 70vh;
+  overflow-y: auto;
+  z-index: 99999;
+}
+
+.filter-menu.active {
+  display: block;
+}
+
+.filter-section {
+  padding: 12px;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.filter-section:last-child {
+  border-bottom: none;
+}
+
+.filter-section-title {
+  font-size: 11px;
+  font-weight: 700;
+  color: #6b7280;
+  text-transform: uppercase;
+  margin-bottom: 8px;
+}
+
+/* FILTER OPTION */
+.filter-option {
+  padding: 8px 12px;
+  cursor: pointer;
+  border-radius: 6px;
+  font-size: 14px;
+  color: #374151;
+  transition: all 0.2s ease;
+}
+
+.filter-option:hover {
+  background: #f3f4f6;
+}
+
+.filter-option.active {
+  background: #dbeafe;
+  color: #1e40af;
+  font-weight: 600;
+}
+
+/* =========================
+   DARK MODE FIX
+========================= */
+body.dark .filter-button,
+[data-theme="dark"] .filter-button {
+  background: rgba(15,23,42,0.9);
+  border: 1px solid #38bdf8;
+  color: #e5e7eb;
+}
+
+body.dark .filter-button:hover,
+[data-theme="dark"] .filter-button:hover {
+  background: #020617;
+}
+
+/* FILTER MENU DARK */
+body.dark .filter-menu,
+[data-theme="dark"] .filter-menu {
+  background: #020617;
+  border: 1px solid #38bdf8;
+}
+
+/* SECTION TITLE DARK */
+body.dark .filter-section-title,
+[data-theme="dark"] .filter-section-title {
+  color: #94a3b8;
+}
+
+/* OPTION TEXT DARK (INI YANG SEBELUMNYA GA KELIATAN) */
+body.dark .filter-option,
+[data-theme="dark"] .filter-option {
+  color: #e5e7eb;
+}
+
+body.dark .filter-option:hover,
+[data-theme="dark"] .filter-option:hover {
+  background: rgba(56,189,248,0.15);
+}
+
+/* ACTIVE OPTION DARK */
+body.dark .filter-option.active,
+[data-theme="dark"] .filter-option.active {
+  background: rgba(56,189,248,0.25);
+  color: #7dd3fc;
+  font-weight: 700;
+}
+
+/* CHECK ICON */
+body.dark .filter-option i,
+[data-theme="dark"] .filter-option i {
+  color: #7dd3fc;
+}
+
+/* =========================
+   STATUS BADGE (DARK)
+========================= */
+body.dark td span,
+[data-theme="dark"] td span {
+  color: #020617 !important;
+  font-weight: 700;
+}
+
+/* =========================
+   RESPONSIVE
+========================= */
+@media (max-width: 768px) {
   .header-wrapper {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    gap: 16px;
+    flex-direction: column;
+    align-items: flex-start;
   }
 
   .header-row {
-    display: grid;
-    grid-template-columns: auto minmax(200px, 300px) auto;
-    gap: 12px;
-    align-items: center;
+    grid-template-columns: 1fr;
+    gap: 10px;
+    width: 100%;
   }
+}
 
-  .filter-group {
-    display: flex;
-    gap: 8px;
-    align-items: center;
-  }
+.bulk-action-bar {
+  position: sticky;
+  bottom: 0;
+  display: none; 
+  align-items: center;
+  gap: 12px;
+  padding: 12px 20px;
+  background: rgba(15, 23, 42, 0.85);
+  backdrop-filter: blur(10px);
+  border-top: 1px solid rgba(255,255,255,0.2);
+  z-index: 50;
+}
 
-  .filter-dropdown {
-    position: relative;
-    display: inline-block;
-    z-index: 99998 !important;
-  }
-
-  .filter-button {
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    padding: 8px 16px;
-    background: rgba(255,255,255,0.9);
-    border: 1px solid #14a2ba;
-    border-radius: 8px;
-    color: #000;
-    font-weight: 500;
-    font-size: 14px;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    white-space: nowrap;
-  }
-
-  .filter-button:hover {
-    background: rgba(255,255,255,1);
-    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-  }
-
-  .filter-menu {
-    display: none;
-    position: absolute;
-    top: calc(100% + 4px);
-    right: 0;
-    background: white;
-    border: 1px solid #14a2ba;
-    border-radius: 8px;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-    min-width: 200px;
-    max-height: 70vh;
-    overflow-y: auto;
-    overflow-x: hidden;
-    z-index: 99999 !important;
-    pointer-events: auto !important; 
-  }
-
-  .filter-menu::-webkit-scrollbar {
-    width: 6px;
-  }
-
-  .filter-menu::-webkit-scrollbar-track {
-    background: #f1f5f9;
-    border-radius: 8px;
-  }
-
-  .filter-menu::-webkit-scrollbar-thumb {
-    background: #cbd5e1;
-    border-radius: 8px;
-  }
-
-  .filter-menu::-webkit-scrollbar-thumb:hover {
-    background: #94a3b8;
-  }
-
-  .filter-menu.active {
-    display: block !important;
-  }
-
-  .filter-section {
-    padding: 12px;
-    border-bottom: 1px solid #e5e7eb;
-  }
-
-  .filter-section:last-child {
-    border-bottom: none;
-  }
-
-  .filter-section-title {
-    font-size: 11px;
-    font-weight: 600;
-    color: #6b7280;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    margin-bottom: 8px;
-  }
-
-  .filter-option {
-    padding: 8px 12px;
-    cursor: pointer;
-    border-radius: 6px;
-    font-size: 14px;
-    color: #374151;
-    transition: all 0.2s ease;
-  }
-
-  .filter-option:hover {
-    background: #f3f4f6;
-  }
-
-  .filter-option.active {
-    background: #dbeafe;
-    color: #1e40af;
-    font-weight: 500;
-  }
-
-  /* Selection Mode Styles */
-  .selection-mode-active {
-    background-color: rgba(20,162,186,0.5) !important;
-    border: 2px solid rgba(20,162,186,0.6) !important;
-    box-shadow: 0 0 20px rgba(20,162,186,0.3);
-  }
-
-  .bulk-action-bar {
-    position: fixed;
-    bottom: 20px;
-    left: 50%;
-    transform: translateX(-50%) translateY(100px);
-    background: linear-gradient(135deg, #14a2ba 0%, #0d7a8e 100%);
-    padding: 15px 25px;
-    border-radius: 50px;
-    box-shadow: 0 10px 40px rgba(20, 162, 186, 0.5);
-    display: flex;
-    align-items: center;
-    gap: 20px;
-    z-index: 9998;
-    transition: transform 0.3s ease;
-    border: 2px solid rgba(255,255,255,0.3);
-  }
-
-  .bulk-action-bar.active {
-    transform: translateX(-50%) translateY(0);
-  }
-
-  .bulk-action-bar-text {
-    color: white;
-    font-weight: bold;
-    font-size: 15px;
-    text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
-  }
-
-  .bulk-action-btn {
-    padding: 10px 24px;
-    border-radius: 25px;
-    font-weight: 700;
-    font-size: 14px;
-    border: none;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    text-shadow: 1px 1px 2px rgba(0,0,0,0.2);
-  }
-
-  .laptop-checkbox {
-    width: 20px;
-    height: 20px;
-    cursor: pointer;
-    accent-color: #14a2ba;
-  }
-
-  @media (max-width: 768px) {
-    .header-wrapper {
-      flex-direction: column;
-      align-items: flex-start;
-    }
-
-    .header-row {
-      grid-template-columns: 1fr;
-      gap: 10px;
-      width: 100%;
-    }
-
-    .filter-group {
-      width: 100%;
-    }
-
-    .filter-group input {
-      flex: 1;
-    }
-
-    .filter-button {
-      width: auto;
-    }
-
-    .filter-menu {
-      right: 0;
-      left: auto;
-    }
-
-    .bulk-action-bar {
-      bottom: 10px;
-      padding: 12px 20px;
-      flex-wrap: wrap;
-      max-width: 90%;
-    }
-  }
+.bulk-action-bar.active {
+  display: flex; 
+}
 </style>
+
 
 <div class="card" id="laptopTableContainer"
     style="background-color: rgba(20,162,186,0.5); backdrop-filter: blur(10px); border: 1px solid rgba(20,162,186,0.3); transition: all 0.3s ease;">

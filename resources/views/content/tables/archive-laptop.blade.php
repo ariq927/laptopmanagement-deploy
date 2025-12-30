@@ -194,7 +194,6 @@
       return;
     }
 
-     🔑 SAVE selection mode state before reload
     const wasInSelectionMode = window.arsipTableSelectionMode || false;
     const currentSelectionsArray = window.selectedLaptopsGlobal ? Array.from(window.selectedLaptopsGlobal) : [];
     
@@ -402,7 +401,6 @@
       e.stopPropagation();
       
       console.log('🎯 Selection mode button clicked!');
-      m
       if (typeof window.initializeTable === 'function') {
         window.initializeTable();
       }

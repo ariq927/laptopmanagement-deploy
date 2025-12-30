@@ -399,22 +399,19 @@
 </div>
 
 <script>
-// Get elements
 const laptopPhoto = document.getElementById('laptopPhoto');
 const photoModal = document.getElementById('photoModal');
 const closeModal = document.getElementById('closeModal');
 const modalImage = document.getElementById('modalImage');
 
-// Open modal when photo clicked
 if (laptopPhoto) {
   laptopPhoto.addEventListener('click', function() {
-    console.log('Photo clicked!'); // Debug
+    console.log('Photo clicked!'); 
     photoModal.classList.add('active');
     document.body.style.overflow = 'hidden';
   });
 }
 
-// Close modal when X clicked
 if (closeModal) {
   closeModal.addEventListener('click', function(e) {
     e.stopPropagation();
@@ -423,7 +420,6 @@ if (closeModal) {
   });
 }
 
-// Close modal when background clicked
 photoModal.addEventListener('click', function(e) {
   if (e.target === photoModal) {
     photoModal.classList.remove('active');
@@ -431,14 +427,12 @@ photoModal.addEventListener('click', function(e) {
   }
 });
 
-// Prevent closing when image clicked
 if (modalImage) {
   modalImage.addEventListener('click', function(e) {
     e.stopPropagation();
   });
 }
 
-// Close modal with ESC key
 document.addEventListener('keydown', function(e) {
   if (e.key === 'Escape' && photoModal.classList.contains('active')) {
     photoModal.classList.remove('active');
